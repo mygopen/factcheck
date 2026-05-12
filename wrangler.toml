@@ -1,0 +1,13 @@
+name = "factcheck-slack-worker"
+main = "src/worker.js"
+compatibility_date = "2026-05-12"
+
+[[kv_namespaces]]
+binding = "FACTCHECK_JOBS"
+id = "replace-with-production-kv-id"
+preview_id = "replace-with-preview-kv-id"
+
+[vars]
+GEMMA_MODEL = "gemma-3-27b-it"
+COVER_TOOL_URL = "https://cover.showcha.com/"
+GRID_TOOL_URL = "https://grid.showcha.com/"

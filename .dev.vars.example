@@ -1,0 +1,7 @@
+SLACK_SIGNING_SECRET=replace-me
+SLACK_BOT_TOKEN=xoxb-replace-me
+GOOGLE_AI_API_KEY=replace-me
+
+# Optional but strongly recommended for evidence search.
+GOOGLE_SEARCH_API_KEY=replace-me
+GOOGLE_CSE_ID=replace-me
