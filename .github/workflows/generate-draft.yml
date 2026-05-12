@@ -1,0 +1,53 @@
+name: Generate fact-check draft
+
+on:
+  workflow_dispatch:
+    inputs:
+      claim_text:
+        description: "謠言文字、社群貼文內容或待查核主張"
+        required: true
+        type: string
+      claim_urls:
+        description: "相關連結，一行一個"
+        required: false
+        type: string
+      notes:
+        description: "補充備註，例如已知截圖、影片來源、想查的方向"
+        required: false
+        type: string
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Generate draft
+        env:
+          GOOGLE_AI_API_KEY: ${{ secrets.GOOGLE_AI_API_KEY }}
+          GOOGLE_SEARCH_API_KEY: ${{ secrets.GOOGLE_SEARCH_API_KEY }}
+          GOOGLE_CSE_ID: ${{ secrets.GOOGLE_CSE_ID }}
+          GEMMA_MODEL: ${{ vars.GEMMA_MODEL || 'gemma-3-27b-it' }}
+          CLAIM_TEXT: ${{ inputs.claim_text }}
+          CLAIM_URLS: ${{ inputs.claim_urls }}
+          NOTES: ${{ inputs.notes }}
+          OUTPUT_DIR: outputs/factcheck-draft
+        run: node scripts/generate-draft.mjs
+
+      - name: Add summary
+        run: |
+          cat outputs/factcheck-draft/metadata.md >> "$GITHUB_STEP_SUMMARY"
+          printf '\n## 文章 HTML\n\n```html\n' >> "$GITHUB_STEP_SUMMARY"
+          cat outputs/factcheck-draft/article.html >> "$GITHUB_STEP_SUMMARY"
+          printf '\n```\n' >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: factcheck-draft
+          path: outputs/factcheck-draft

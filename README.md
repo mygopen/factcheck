@@ -59,6 +59,29 @@ cp .dev.vars.example .dev.vars
 npm run dev
 ```
 
+## 純 GitHub 版本
+
+如果你想先不接 Cloudflare，也不接 Slack，可以直接用 GitHub Actions 產生查核草稿。
+
+先到 GitHub repo 的 `Settings` -> `Secrets and variables` -> `Actions` 設定：
+
+- `GOOGLE_AI_API_KEY`
+- `GOOGLE_SEARCH_API_KEY`，可選，但建議設定
+- `GOOGLE_CSE_ID`，可選，但建議設定
+
+接著到 `Actions` -> `Generate fact-check draft` -> `Run workflow`，填入：
+
+- `claim_text`：謠言文字、社群貼文內容或待查核主張
+- `claim_urls`：相關連結，一行一個
+- `notes`：補充備註，例如已知截圖、影片來源、想查的方向
+
+完成後可在該次 workflow run 下載 `factcheck-draft` artifact，裡面包含：
+
+- `article.html`：可貼到 Blogger 的 HTML
+- `metadata.md`：標題、標籤、永久連結、搜尋說明
+- `showcha-assets.md`：cover.showcha.com 與 grid.showcha.com 製作清單
+- `report.json`：完整機器可讀輸出
+
 ## Cloudflare 部署
 
 建立 KV：

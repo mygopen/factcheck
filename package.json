@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "check": "node --check src/worker.js"
+    "draft": "node scripts/generate-draft.mjs",
+    "check": "node --check src/worker.js && node --check scripts/generate-draft.mjs"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"
