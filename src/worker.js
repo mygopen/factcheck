@@ -163,9 +163,7 @@ async function runFactcheckJob(env, { jobId, channel, threadTs }) {
       threadTs,
       [
         `查核草稿完成：\`${report.title || "未命名草稿"}\``,
-        `文章頁面：${publicUrl(env, `/jobs/${encodeURIComponent(jobId)}`)}`,
-        `JSON: ${publicUrl(env, `/api/jobs/${encodeURIComponent(jobId)}`)}`,
-        `永久連結建議：\`${report.permalink || ""}\``
+        `文章頁面：${publicUrl(env, `/jobs/${encodeURIComponent(jobId)}`)}`
       ].join("\n")
     );
   } catch (error) {
@@ -294,10 +292,14 @@ async function generateReport(env, claimPackage, evidence) {
     "3. 資料來源只列 evidence.items、evidence.results.items 或 Slack 線索 urls 中真的存在的連結；必須直接使用 evidence 中的 link 欄位，不可自行新增任何 URL。",
     "4. showcha_assets 要包含 cover.showcha.com 首圖製作文案、grid.showcha.com 截圖組合清單。",
     "5. 如果 evidence.mode 是 manual_required，請明確把草稿標記為待人工查證，不要寫成已完成定稿。",
-    "6. 查證解釋區塊必須寫成 MyGoPen 式分段長文：放在 <blockquote class=\"yestrue\"> 內，至少包含 2 個 <h3 style=\"text-align: left;\">小標</h3><br />，最後一個小標必須是「結論」。",
-    "7. 查證解釋區塊的小節應依題材自然命名，例如「網傳影片的原始來源為何？」、「傳言流傳脈絡為何？」、「實際狀況為何？」、「結論」。",
-    "8. 查證解釋區塊內的段落必須使用 <br /><br /> 分隔；可用（一）（二）（三）呈現查證步驟；重要查核句可用 <b><span style=\"color: red;\">重點文字</span></b> 標示。",
-    "9. 不要只寫摘要式結論；查證解釋至少要清楚交代：原始來源或可追溯線索、流傳脈絡或主張形成方式、證據如何支持/反駁、結論。",
+    "6. title 必須且只能用以下三種分類之一開頭：【錯誤】【誤導】【易誤解】；不得使用【闢謠】、【查核】、【謠言查證】或其他分類。",
+    "7. 分類判斷：核心主張與事實不符用【錯誤】；挪用素材、斷章取義、時間地點脈絡錯置但含部分真實元素用【誤導】；文字本身未必全錯但容易造成錯誤理解、需補充脈絡用【易誤解】。",
+    "8. 「你可以先知道」區塊必須放在 <div class=\"quote_style\"><h3 style=\"text-align: center;\">你可以先知道：</h3>...</div> 內，內容必須是（1）（2）（3）條列，至少 2 點、最多 4 點，項目之間使用 <br /><br />，不得寫成單段摘要。",
+    "9. 「你可以先知道」每點應各自完整說明：傳言背景或來源、查核到的關鍵證據、傳言流傳脈絡或結論；語氣需像 MyGoPen，不要使用條列符號以外的格式。",
+    "10. 查證解釋區塊必須寫成 MyGoPen 式分段長文：放在 <blockquote class=\"yestrue\"> 內，至少包含 2 個 <h3 style=\"text-align: left;\">小標</h3><br />，最後一個小標必須是「結論」。",
+    "11. 查證解釋區塊的小節應依題材自然命名，例如「網傳影片的原始來源為何？」、「傳言流傳脈絡為何？」、「實際狀況為何？」、「結論」。",
+    "12. 查證解釋區塊內的段落必須使用 <br /><br /> 分隔；可用（一）（二）（三）呈現查證步驟；重要查核句可用 <b><span style=\"color: red;\">重點文字</span></b> 標示。",
+    "13. 不要只寫摘要式結論；查證解釋至少要清楚交代：原始來源或可追溯線索、流傳脈絡或主張形成方式、證據如何支持/反駁、結論。",
     "只輸出 JSON，不要 markdown。",
     "JSON schema:",
     '{"title":"","article_html":"","tags":[""],"permalink":"","search_description":"","showcha_assets":{"cover":{"tool_url":"","headline":"","verdict":"","source_image_notes":""},"grid":{"tool_url":"","screenshots":[{"label":"","source_url":"","note":""}]}}}',
@@ -317,13 +319,19 @@ async function generateReport(env, claimPackage, evidence) {
   report.showcha_assets.grid ||= {};
   report.showcha_assets.cover.tool_url = env.COVER_TOOL_URL || "https://cover.showcha.com/";
   report.showcha_assets.grid.tool_url = env.GRID_TOOL_URL || "https://grid.showcha.com/";
+  normalizeReportTitle(report);
+  normalizeQuickTake(report);
   normalizeFactcheckExplanation(report);
   sanitizeReportLinks(report, claimPackage, evidence);
   return report;
 }
 
 function bloggerTemplate() {
-  return `<div class="quote_style"><h3 style="text-align: center;">你可以先知道：</h3>說明破解資訊。</div><br />
+  return `<div class="quote_style"><h3 style="text-align: center;">你可以先知道：</h3>（1）第一點說明傳言背景、原始來源或事件脈絡。
+<br /><br />
+（2）第二點說明查核到的關鍵證據或正確資訊。
+<br /><br />
+（3）第三點說明傳言流傳脈絡、誤導之處或結論。</div><br />
 <div class="intro_words">網傳「謠言內容」的影片訊息，前言描述。</div>
 「首圖」
 <!--more-->
@@ -463,6 +471,65 @@ function sanitizeReportLinks(report, claimPackage, evidence) {
       }
     }
   }
+}
+
+function normalizeReportTitle(report) {
+  if (typeof report.title !== "string") return;
+  const allowed = ["錯誤", "誤導", "易誤解"];
+  const original = report.title.trim();
+  const match = original.match(/^【([^】]+)】(.+)$/);
+  if (match && allowed.includes(match[1])) {
+    report.title = `【${match[1]}】${match[2].trim()}`;
+    return;
+  }
+
+  const label = pickTitleLabel(original, report.article_html || "");
+  const titleText = original.replace(/^【[^】]+】/, "").trim() || "網傳訊息查核";
+  report.title = `【${label}】${titleText}`;
+}
+
+function pickTitleLabel(title, articleHtml) {
+  const text = `${title}\n${stripHtml(articleHtml)}`;
+  if (/易誤解|容易誤解|需補充|需釐清|部分正確|脈絡/i.test(text)) return "易誤解";
+  if (/誤導|斷章取義|挪用|移花接木|錯置|舊[影照聞圖]|非近期|非本次/i.test(text)) return "誤導";
+  return "錯誤";
+}
+
+function normalizeQuickTake(report) {
+  if (typeof report.article_html !== "string") return;
+  report.article_html = report.article_html.replace(
+    /<div class="quote_style"><h3 style="text-align: center;">你可以先知道：<\/h3>([\s\S]*?)<\/div>/,
+    (match, content) => {
+      if (/（1）[\s\S]+<br\s*\/?><br\s*\/?>[\s\S]*（2）/.test(content)) return match;
+      const items = splitQuickTakeItems(content);
+      if (!items.length) return match;
+      const normalized = items.slice(0, 4).map((item, index) => `（${index + 1}）${item}`).join("\n<br /><br />\n");
+      return `<div class="quote_style"><h3 style="text-align: center;">你可以先知道：</h3>${normalized}</div>`;
+    }
+  );
+}
+
+function splitQuickTakeItems(content) {
+  const text = stripHtml(content)
+    .replace(/你可以先知道：?/g, "")
+    .replace(/[（(]\d+[）)]/g, "\n")
+    .split(/\n|。(?=\S)/)
+    .map((item) => item.replace(/^[-•\s]+/, "").trim())
+    .filter((item) => item.length >= 8);
+  return text.length ? text.map((item) => item.endsWith("。") ? item : `${item}。`) : [];
+}
+
+function stripHtml(value) {
+  return String(value || "")
+    .replace(/<br\s*\/?><br\s*\/?>/gi, "\n")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function normalizeFactcheckExplanation(report) {
