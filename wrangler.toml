@@ -2,12 +2,18 @@ name = "factcheck-slack-worker"
 main = "src/worker.js"
 compatibility_date = "2026-05-12"
 
+[triggers]
+crons = ["* * * * *"]
+
 [[kv_namespaces]]
 binding = "FACTCHECK_JOBS"
-id = "replace-with-production-kv-id"
-preview_id = "replace-with-preview-kv-id"
+id = "8946e9181ea3478db5b2e667c7099731"
+preview_id = "55a7b456faa94f7ea20ee21ac34076b9"
 
 [vars]
-GEMMA_MODEL = "gemma-3-27b-it"
+GEMMA_MODEL = "gemini-3.1-flash-lite"
+FALLBACK_MODELS = "gemini-2.5-flash-lite,gemma-3-27b-it"
+GROUNDING_MODEL = "gemini-2.5-flash-lite"
 COVER_TOOL_URL = "https://cover.showcha.com/"
 GRID_TOOL_URL = "https://grid.showcha.com/"
+PUBLIC_BASE_URL = "https://factcheck-slack-worker.charlestyyeh.workers.dev"

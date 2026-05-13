@@ -1,16 +1,22 @@
 # Slack AI 查核文章產生系統
 
-這個專案是第一版 MVP：用 Cloudflare Worker 接 Slack thread 指令，抓取貼文線索，呼叫 Google Gemma 3 產生查核草稿，並輸出適合 Google Blogger 的 HTML、標題、標籤、永久連結與 showcha 素材製作清單。
+這個專案是第一版 MVP：用 Cloudflare Worker 接 Slack thread 指令，抓取貼文線索，呼叫 Gemini / Gemma 與 Google Search grounding 產生查核草稿，並輸出適合 Google Blogger 的 HTML、標題、標籤、永久連結與 showcha 素材製作清單。
 
 ## 目前流程
 
 1. 在 Slack 某個貼文底下留言 `查核`、`factcheck` 或 `/factcheck`。
 2. Slack Events API 呼叫 Cloudflare Worker 的 `/slack/events`。
-3. Worker 抓取該 thread 原文、留言、連結與 Slack 附件 metadata。
-4. Worker 先請 Gemma 3 萃取主張與搜尋關鍵字。
-5. 若有設定 Google Programmable Search，Worker 會自動搜尋證據連結。
-6. Worker 再請 Gemma 3 產出 Blogger HTML 草稿與素材清單。
-7. 結果可從 Slack 回覆中的 `/api/jobs/:id` 取得。
+3. Worker 先把 job 存進 Cloudflare KV 並回覆 Slack，避免 Slack 事件逾時。
+4. Cloudflare Cron 每分鐘處理 queued job，抓取該 thread 原文、留言、連結與 Slack 附件 metadata。
+5. Worker 請模型萃取主張與搜尋關鍵字，並用 Gemini Google Search grounding 找證據來源。
+6. Worker 再請模型產出 Blogger HTML 草稿與素材清單。
+7. 結果可從 Slack 回覆中的 `/jobs/:id` 網站頁面取得，也可用 `/api/jobs/:id` 讀 JSON。
+
+後台列表頁：
+
+```text
+https://你的-worker網域/jobs
+```
 
 ## 需要的帳號與設定
 
@@ -34,22 +40,13 @@
 
 ### 2. Google AI Studio
 
-建立 API key，使用 Gemma 3 hosted API。預設模型是：
+建立 API key，預設模型是：
 
 ```text
-gemma-3-27b-it
+gemini-3.1-flash-lite
 ```
 
-### 3. Google Programmable Search
-
-這一步建議要做，否則系統只能根據 Slack 裡已有的連結產生「待人工補證據」草稿。
-
-設定環境變數：
-
-```text
-GOOGLE_SEARCH_API_KEY
-GOOGLE_CSE_ID
-```
+搜尋證據使用 Gemini Google Search grounding，不需要另外申請 Google Programmable Search 或 Custom Search JSON API。
 
 ## 本機開發
 
@@ -66,8 +63,6 @@ npm run dev
 先到 GitHub repo 的 `Settings` -> `Secrets and variables` -> `Actions` 設定：
 
 - `GOOGLE_AI_API_KEY`
-- `GOOGLE_SEARCH_API_KEY`，可選，但建議設定
-- `GOOGLE_CSE_ID`，可選，但建議設定
 
 接著到 `Actions` -> `Generate fact-check draft` -> `Run workflow`，填入：
 
@@ -99,8 +94,6 @@ npx wrangler kv namespace create FACTCHECK_JOBS --preview
 npx wrangler secret put SLACK_SIGNING_SECRET
 npx wrangler secret put SLACK_BOT_TOKEN
 npx wrangler secret put GOOGLE_AI_API_KEY
-npx wrangler secret put GOOGLE_SEARCH_API_KEY
-npx wrangler secret put GOOGLE_CSE_ID
 ```
 
 部署：

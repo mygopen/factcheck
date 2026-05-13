@@ -2,7 +2,8 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const outputDir = process.env.OUTPUT_DIR || "outputs/latest";
-const model = process.env.GEMMA_MODEL || "gemma-3-27b-it";
+const primaryModel = process.env.GEMMA_MODEL || "gemini-2.5-flash-lite";
+const groundingModel = process.env.GROUNDING_MODEL || "gemini-2.5-flash-lite";
 const claimText = process.env.CLAIM_TEXT || "";
 const extraUrls = splitLines(process.env.CLAIM_URLS || "");
 const notes = process.env.NOTES || "";
@@ -56,39 +57,43 @@ async function generateSearchPlan(input) {
 
 async function searchEvidence(searchPlan) {
   const queries = Array.from(new Set((searchPlan.queries || []).filter(Boolean))).slice(0, 6);
-  if (!process.env.GOOGLE_SEARCH_API_KEY || !process.env.GOOGLE_CSE_ID) {
-    return {
-      mode: "manual_required",
-      note: "Set GOOGLE_SEARCH_API_KEY and GOOGLE_CSE_ID to enable automatic evidence search.",
-      queries,
-      results: []
-    };
-  }
-
   const results = [];
   for (const queryText of queries) {
-    const url = new URL("https://www.googleapis.com/customsearch/v1");
-    url.searchParams.set("key", process.env.GOOGLE_SEARCH_API_KEY);
-    url.searchParams.set("cx", process.env.GOOGLE_CSE_ID);
-    url.searchParams.set("q", queryText);
-    url.searchParams.set("num", "5");
-    const response = await fetch(url);
-    const body = await response.json();
-    if (!response.ok) {
-      results.push({ query: queryText, error: body.error?.message || response.statusText, items: [] });
-      continue;
-    }
-    results.push({
-      query: queryText,
-      items: (body.items || []).map((item) => ({
-        title: item.title,
-        link: item.link,
-        snippet: item.snippet,
-        displayLink: item.displayLink
-      }))
-    });
+    results.push(await generateGroundedEvidence(queryText, searchPlan));
   }
-  return { mode: "google_cse", queries, results };
+  const items = uniqueEvidenceItems(results.flatMap((result) => result.items || []));
+  return {
+    mode: items.length ? "gemini_google_search_grounding" : "manual_required",
+    note: items.length ? "Evidence sources were extracted from Gemini groundingMetadata.groundingChunks." : "Gemini Google Search grounding returned no usable sources; manual verification is required.",
+    queries,
+    items,
+    results
+  };
+}
+
+async function generateGroundedEvidence(queryText, searchPlan) {
+  const prompt = [
+    "你是事實查核研究員。請使用 Google Search grounding 查找可驗證來源。",
+    "請聚焦於原始來源、官方聲明、可信媒體、反向搜圖可用線索。",
+    "用繁體中文輸出短摘要，列出哪些資訊支持或反駁待查主張。",
+    "",
+    `查詢：${queryText}`,
+    "",
+    "待查主張與搜尋計畫：",
+    JSON.stringify(searchPlan, null, 2)
+  ].join("\n");
+  const grounded = await generateGroundedText(prompt);
+  const chunks = grounded.groundingMetadata?.groundingChunks || [];
+  return {
+    query: queryText,
+    summary: grounded.text,
+    webSearchQueries: grounded.groundingMetadata?.webSearchQueries || [],
+    items: chunks.map((chunk) => ({
+      title: chunk.web?.title || chunk.retrievedContext?.title || "",
+      link: chunk.web?.uri || chunk.retrievedContext?.uri || "",
+      snippet: ""
+    })).filter((item) => item.link)
+  };
 }
 
 async function generateReport(input, evidence) {
@@ -98,8 +103,9 @@ async function generateReport(input, evidence) {
     "重要規則：",
     "1. 沒有證據支持的句子要保守表述，不能編造來源。",
     "2. HTML 必須符合使用者指定結構。",
-    "3. 資料來源只列 evidence 中真的存在的連結。",
+    "3. 資料來源只列 evidence.items、evidence.results.items 或謠言線索 urls 中真的存在的連結；如果沒有可用連結，資料來源段落只能寫「待人工補充資料來源」，不可自行新增任何 URL。",
     "4. showcha_assets 要包含 cover.showcha.com 首圖製作文案、grid.showcha.com 截圖組合清單。",
+    "5. 如果 evidence.mode 是 manual_required，請明確把草稿標記為待人工查證，不要寫成已完成定稿。",
     "只輸出 JSON，不要 markdown。",
     "JSON schema:",
     '{"title":"","article_html":"","tags":[""],"permalink":"","search_description":"","showcha_assets":{"cover":{"tool_url":"https://cover.showcha.com/","headline":"","verdict":"","source_image_notes":""},"grid":{"tool_url":"https://grid.showcha.com/","screenshots":[{"label":"","source_url":"","note":""}]}}}',
@@ -119,6 +125,7 @@ async function generateReport(input, evidence) {
   report.showcha_assets.grid ||= {};
   report.showcha_assets.cover.tool_url ||= "https://cover.showcha.com/";
   report.showcha_assets.grid.tool_url ||= "https://grid.showcha.com/";
+  sanitizeReportLinks(report, allowedEvidenceLinks(input, evidence));
   return report;
 }
 
@@ -127,25 +134,113 @@ async function generateGemmaJson(prompt) {
   return parseJsonObject(text);
 }
 
+async function generateGroundedText(prompt) {
+  if (!process.env.GOOGLE_AI_API_KEY) {
+    throw new Error("GOOGLE_AI_API_KEY is required.");
+  }
+  const errors = [];
+  const models = Array.from(new Set([groundingModel, "gemini-2.5-flash", "gemini-2.0-flash"]));
+
+  for (const model of models) {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GOOGLE_AI_API_KEY}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        tools: [{ google_search: {} }],
+        generationConfig: { temperature: 0.1 }
+      })
+    });
+    const body = await response.json();
+    if (response.ok) {
+      const candidate = body.candidates?.[0] || {};
+      return {
+        text: candidate.content?.parts?.map((part) => part.text || "").join("") || "",
+        groundingMetadata: candidate.groundingMetadata || {}
+      };
+    }
+    errors.push({ model, status: response.status, body });
+    if (!isRetryableModelError(response.status, body)) break;
+  }
+
+  throw new Error(`Gemini grounding failed: ${JSON.stringify(errors)}`);
+}
+
 async function generateGemmaText(prompt) {
   if (!process.env.GOOGLE_AI_API_KEY) {
     throw new Error("GOOGLE_AI_API_KEY is required.");
   }
 
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GOOGLE_AI_API_KEY}`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: 0.2,
-        responseMimeType: "application/json"
-      }
-    })
-  });
-  const body = await response.json();
-  if (!response.ok) throw new Error(`Gemma API failed: ${JSON.stringify(body)}`);
-  return body.candidates?.[0]?.content?.parts?.map((part) => part.text || "").join("") || "";
+  const errors = [];
+  for (const model of modelCandidates()) {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GOOGLE_AI_API_KEY}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.2,
+          responseMimeType: "application/json"
+        }
+      })
+    });
+    const body = await response.json();
+    if (response.ok) return body.candidates?.[0]?.content?.parts?.map((part) => part.text || "").join("") || "";
+
+    errors.push({ model, status: response.status, body });
+    if (!isRetryableModelError(response.status, body)) break;
+  }
+
+  throw new Error(`Gemini API failed: ${JSON.stringify(errors)}`);
+}
+
+function modelCandidates() {
+  return Array.from(new Set([
+    primaryModel,
+    ...(process.env.FALLBACK_MODELS || "gemini-2.5-flash-lite,gemma-3-27b-it").split(",").map((model) => model.trim()).filter(Boolean)
+  ]));
+}
+
+function isRetryableModelError(status, body) {
+  const code = body?.error?.status || "";
+  return [429, 500, 503].includes(status) || ["RESOURCE_EXHAUSTED", "INTERNAL", "UNAVAILABLE"].includes(code);
+}
+
+function uniqueEvidenceItems(items) {
+  const seen = new Set();
+  const unique = [];
+  for (const item of items) {
+    const link = item.link || item.url || "";
+    if (!link || seen.has(link)) continue;
+    seen.add(link);
+    unique.push(item);
+  }
+  return unique;
+}
+
+function allowedEvidenceLinks(input, evidence) {
+  return new Set([
+    ...(input.urls || []),
+    ...(evidence.items || []).map((item) => item.link),
+    ...(evidence.results || []).flatMap((result) => (result.items || []).map((item) => item.link))
+  ].filter(Boolean));
+}
+
+function sanitizeReportLinks(report, allowedLinks) {
+  if (typeof report.article_html === "string") {
+    report.article_html = report.article_html.replace(/<a\s+href="([^"]+)"([^>]*)>(.*?)<\/a>/g, (match, href, attrs, label) => {
+      if (allowedLinks.has(href)) return match;
+      return `<span${attrs}>${label}（待人工補連結）</span>`;
+    });
+  }
+
+  const screenshots = report.showcha_assets?.grid?.screenshots || [];
+  for (const screenshot of screenshots) {
+    if (screenshot.source_url && !allowedLinks.has(screenshot.source_url)) {
+      screenshot.note = [screenshot.note, `原建議連結「${screenshot.source_url}」未出現在 grounding evidence，需人工確認。`].filter(Boolean).join(" ");
+      screenshot.source_url = "";
+    }
+  }
 }
 
 function parseJsonObject(text) {

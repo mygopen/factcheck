@@ -6,17 +6,23 @@ export default {
     const url = new URL(request.url);
 
     if (request.method === "GET" && url.pathname === "/") {
-      return json({
-        ok: true,
-        service: "factcheck-slack-worker",
-        endpoints: ["/slack/events", "/api/jobs/:id"]
-      });
+      return Response.redirect(new URL("/jobs", url).toString(), 302);
+    }
+
+    if (request.method === "GET" && url.pathname === "/jobs") {
+      return renderJobsPage(env, url);
+    }
+
+    if (request.method === "GET" && url.pathname.startsWith("/jobs/")) {
+      const id = decodeURIComponent(url.pathname.slice("/jobs/".length));
+      const job = await env.FACTCHECK_JOBS.get(jobKey(id), "json");
+      return job ? html(renderJobPage(normalizeJobForOutput(job), url)) : html(renderNotFoundPage(id), 404);
     }
 
     if (request.method === "GET" && url.pathname.startsWith("/api/jobs/")) {
       const id = url.pathname.split("/").pop();
       const job = await env.FACTCHECK_JOBS.get(jobKey(id), "json");
-      return job ? json(job) : json({ ok: false, error: "job_not_found" }, 404);
+      return job ? json(normalizeJobForOutput(job)) : json({ ok: false, error: "job_not_found" }, 404);
     }
 
     if (request.method === "POST" && url.pathname === "/api/draft") {
@@ -28,6 +34,10 @@ export default {
     }
 
     return json({ ok: false, error: "not_found" }, 404);
+  },
+
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(processQueuedJobs(env));
   }
 };
 
@@ -48,13 +58,13 @@ async function handleDraftRequest(request, env) {
 
 async function handleSlackEvent(request, env, ctx) {
   const rawBody = await request.text();
-  const verified = await verifySlackSignature(request, rawBody, env.SLACK_SIGNING_SECRET);
-  if (!verified) return json({ ok: false, error: "invalid_signature" }, 401);
-
   const payload = JSON.parse(rawBody);
   if (payload.type === "url_verification") {
     return new Response(payload.challenge, { headers: { "content-type": "text/plain;charset=UTF-8" } });
   }
+
+  const verified = await verifySlackSignature(request, rawBody, env.SLACK_SIGNING_SECRET);
+  if (!verified) return json({ ok: false, error: "invalid_signature" }, 401);
 
   if (payload.type !== "event_callback") return json({ ok: true });
 
@@ -77,12 +87,49 @@ async function handleSlackEvent(request, env, ctx) {
 
   await postSlackMessage(env, channel, threadTs, `收到，開始整理查核線索。Job ID: \`${jobId}\``);
 
-  // Keep Slack's Events API response fast; Cloudflare will continue the async work when possible.
-  const work = runFactcheckJob(env, { jobId, channel, threadTs });
-  if (typeof ctx?.waitUntil === "function") ctx.waitUntil(work);
-  else await work;
+  // Keep Slack's Events API response fast. The scheduled worker processes queued jobs.
+  if (env.PROCESS_IMMEDIATELY === "true") {
+    const work = runFactcheckJob(env, { jobId, channel, threadTs });
+    if (typeof ctx?.waitUntil === "function") ctx.waitUntil(work);
+    else await work;
+  }
 
   return json({ ok: true, jobId });
+}
+
+async function processQueuedJobs(env) {
+  const list = await env.FACTCHECK_JOBS.list({ prefix: "job:", limit: 20 });
+  const queued = [];
+  for (const key of list.keys || []) {
+    const job = await env.FACTCHECK_JOBS.get(key.name, "json");
+    if (job?.status === "queued") queued.push(job);
+    if (queued.length >= 2) break;
+  }
+
+  for (const job of queued) {
+    await runFactcheckJob(env, {
+      jobId: job.id,
+      channel: job.channel,
+      threadTs: job.threadTs
+    });
+  }
+}
+
+async function renderJobsPage(env, url) {
+  const list = await env.FACTCHECK_JOBS.list({ prefix: "job:", limit: 50 });
+  const jobs = [];
+  for (const key of list.keys || []) {
+    const job = await env.FACTCHECK_JOBS.get(key.name, "json");
+    if (job) jobs.push(job);
+  }
+  jobs.sort((a, b) => String(b.updatedAt || b.createdAt || "").localeCompare(String(a.updatedAt || a.createdAt || "")));
+  return html(renderJobsListPage(jobs, url));
+}
+
+function normalizeJobForOutput(job) {
+  const copy = JSON.parse(JSON.stringify(job));
+  if (copy.report) sanitizeReportLinks(copy.report, copy.claimPackage || {}, copy.evidence || {});
+  return copy;
 }
 
 async function runFactcheckJob(env, { jobId, channel, threadTs }) {
@@ -116,7 +163,8 @@ async function runFactcheckJob(env, { jobId, channel, threadTs }) {
       threadTs,
       [
         `查核草稿完成：\`${report.title || "未命名草稿"}\``,
-        `Job: /api/jobs/${jobId}`,
+        `文章頁面：${publicUrl(env, `/jobs/${encodeURIComponent(jobId)}`)}`,
+        `JSON: ${publicUrl(env, `/api/jobs/${encodeURIComponent(jobId)}`)}`,
         `永久連結建議：\`${report.permalink || ""}\``
       ].join("\n")
     );
@@ -143,21 +191,32 @@ async function fetchSlackThread(env, channel, threadTs) {
 
 function buildClaimPackage(messages) {
   const root = messages[0] || {};
-  const allText = messages.map((message) => message.text || "").join("\n\n");
-  const files = messages.flatMap((message) => (message.files || []).map(normalizeSlackFile));
+  const relevantMessages = messages.filter(isRelevantClaimMessage);
+  const allText = relevantMessages.map((message) => message.text || "").join("\n\n");
+  const files = relevantMessages.flatMap((message) => (message.files || []).map(normalizeSlackFile));
   const urls = Array.from(new Set(extractUrls(allText)));
   return {
     rootText: stripSlackMentions(root.text || ""),
     threadText: stripSlackMentions(allText),
     urls,
     files,
-    slackMessages: messages.map((message) => ({
+    slackMessages: relevantMessages.map((message) => ({
       user: message.user,
       ts: message.ts,
       text: stripSlackMentions(message.text || ""),
       files: (message.files || []).map(normalizeSlackFile)
     }))
   };
+}
+
+function isRelevantClaimMessage(message) {
+  if (message.bot_id || message.subtype === "bot_message") return false;
+  const text = stripSlackMentions(message.text || "");
+  const hasEvidencePayload = Boolean((message.files || []).length || extractUrls(text).length);
+  if (hasEvidencePayload) return true;
+  if (/^(查核|factcheck|\/factcheck)$/i.test(text.trim())) return false;
+  if (/^(收到，開始整理查核線索|查核草稿產生失敗|查核草稿完成)/.test(text.trim())) return false;
+  return Boolean(text.trim());
 }
 
 function normalizeSlackFile(file) {
@@ -185,36 +244,44 @@ async function generateSearchPlan(env, claimPackage) {
 }
 
 async function searchEvidence(env, searchPlan) {
-  const queries = Array.from(new Set((searchPlan.queries || []).filter(Boolean))).slice(0, 6);
-  if (!env.GOOGLE_SEARCH_API_KEY || !env.GOOGLE_CSE_ID) {
-    return {
-      mode: "manual_required",
-      note: "Set GOOGLE_SEARCH_API_KEY and GOOGLE_CSE_ID to enable automatic evidence search.",
-      queries,
-      results: []
-    };
-  }
-
+  const queries = Array.from(new Set((searchPlan.queries || []).filter(Boolean))).slice(0, 3);
   const results = [];
   for (const queryText of queries) {
-    const url = new URL("https://www.googleapis.com/customsearch/v1");
-    url.searchParams.set("key", env.GOOGLE_SEARCH_API_KEY);
-    url.searchParams.set("cx", env.GOOGLE_CSE_ID);
-    url.searchParams.set("q", queryText);
-    url.searchParams.set("num", "5");
-    const response = await fetch(url);
-    const body = await response.json();
-    results.push({
-      query: queryText,
-      items: (body.items || []).map((item) => ({
-        title: item.title,
-        link: item.link,
-        snippet: item.snippet,
-        displayLink: item.displayLink
-      }))
-    });
+    results.push(await generateGroundedEvidence(env, queryText, searchPlan));
   }
-  return { mode: "google_cse", queries, results };
+  const items = uniqueEvidenceItems(results.flatMap((result) => result.items || []));
+  return {
+    mode: items.length ? "gemini_google_search_grounding" : "manual_required",
+    note: items.length ? "Evidence sources were extracted from Gemini groundingMetadata.groundingChunks." : "Gemini Google Search grounding returned no usable sources; manual verification is required.",
+    queries,
+    items,
+    results
+  };
+}
+
+async function generateGroundedEvidence(env, queryText, searchPlan) {
+  const prompt = [
+    "你是事實查核研究員。請使用 Google Search grounding 查找可驗證來源。",
+    "請聚焦於原始來源、官方聲明、可信媒體、反向搜圖可用線索。",
+    "用繁體中文輸出短摘要，列出哪些資訊支持或反駁待查主張。",
+    "",
+    `查詢：${queryText}`,
+    "",
+    "待查主張與搜尋計畫：",
+    JSON.stringify(searchPlan, null, 2)
+  ].join("\n");
+  const grounded = await generateGroundedText(env, prompt);
+  const chunks = grounded.groundingMetadata?.groundingChunks || [];
+  return {
+    query: queryText,
+    summary: grounded.text,
+    webSearchQueries: grounded.groundingMetadata?.webSearchQueries || [],
+    items: chunks.map((chunk) => ({
+      title: chunk.web?.title || chunk.retrievedContext?.title || "",
+      link: chunk.web?.uri || chunk.retrievedContext?.uri || "",
+      snippet: ""
+    })).filter((item) => item.link)
+  };
 }
 
 async function generateReport(env, claimPackage, evidence) {
@@ -224,8 +291,9 @@ async function generateReport(env, claimPackage, evidence) {
     "重要規則：",
     "1. 沒有證據支持的句子要保守表述，不能編造來源。",
     "2. HTML 必須符合使用者指定結構。",
-    "3. 資料來源只列 evidence 中真的存在的連結。",
+    "3. 資料來源只列 evidence.items、evidence.results.items 或 Slack 線索 urls 中真的存在的連結；必須直接使用 evidence 中的 link 欄位，不可自行新增任何 URL。",
     "4. showcha_assets 要包含 cover.showcha.com 首圖製作文案、grid.showcha.com 截圖組合清單。",
+    "5. 如果 evidence.mode 是 manual_required，請明確把草稿標記為待人工查證，不要寫成已完成定稿。",
     "只輸出 JSON，不要 markdown。",
     "JSON schema:",
     '{"title":"","article_html":"","tags":[""],"permalink":"","search_description":"","showcha_assets":{"cover":{"tool_url":"","headline":"","verdict":"","source_image_notes":""},"grid":{"tool_url":"","screenshots":[{"label":"","source_url":"","note":""}]}}}',
@@ -245,6 +313,7 @@ async function generateReport(env, claimPackage, evidence) {
   report.showcha_assets.grid ||= {};
   report.showcha_assets.cover.tool_url = env.COVER_TOOL_URL || "https://cover.showcha.com/";
   report.showcha_assets.grid.tool_url = env.GRID_TOOL_URL || "https://grid.showcha.com/";
+  sanitizeReportLinks(report, claimPackage, evidence);
   return report;
 }
 
@@ -273,23 +342,237 @@ async function generateGemmaJson(env, prompt) {
   return parseJsonObject(text);
 }
 
+async function generateGroundedText(env, prompt) {
+  if (!env.GOOGLE_AI_API_KEY) throw new Error("GOOGLE_AI_API_KEY is missing");
+  const models = Array.from(new Set([
+    env.GROUNDING_MODEL || "gemini-2.5-flash-lite",
+    "gemini-2.5-flash",
+    "gemini-2.0-flash"
+  ]));
+  const errors = [];
+
+  for (const model of models) {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.GOOGLE_AI_API_KEY}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        tools: [{ google_search: {} }],
+        generationConfig: { temperature: 0.1 }
+      })
+    });
+    const body = await response.json();
+    if (response.ok) {
+      const candidate = body.candidates?.[0] || {};
+      return {
+        text: candidate.content?.parts?.map((part) => part.text || "").join("") || "",
+        groundingMetadata: candidate.groundingMetadata || {}
+      };
+    }
+    errors.push({ model, status: response.status, body });
+    if (!isRetryableModelError(response.status, body)) break;
+  }
+
+  throw new Error(`Gemini grounding failed: ${JSON.stringify(errors)}`);
+}
+
 async function generateGemmaText(env, prompt) {
   if (!env.GOOGLE_AI_API_KEY) throw new Error("GOOGLE_AI_API_KEY is missing");
-  const model = env.GEMMA_MODEL || "gemma-3-27b-it";
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.GOOGLE_AI_API_KEY}`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: 0.2,
-        responseMimeType: "application/json"
+  const models = modelCandidates(env);
+  const errors = [];
+
+  for (const model of models) {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.GOOGLE_AI_API_KEY}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.2,
+          responseMimeType: "application/json"
+        }
+      })
+    });
+    const body = await response.json();
+    if (response.ok) {
+      return body.candidates?.[0]?.content?.parts?.map((part) => part.text || "").join("") || "";
+    }
+
+    errors.push({ model, status: response.status, body });
+    if (!isRetryableModelError(response.status, body)) break;
+  }
+
+  throw new Error(`Gemini API failed: ${JSON.stringify(errors)}`);
+}
+
+function modelCandidates(env) {
+  return Array.from(new Set([
+    env.GEMMA_MODEL || "gemini-2.5-flash-lite",
+    ...(env.FALLBACK_MODELS || "").split(",").map((model) => model.trim()).filter(Boolean)
+  ]));
+}
+
+function isRetryableModelError(status, body) {
+  const code = body?.error?.status || "";
+  return [429, 500, 503].includes(status) || ["RESOURCE_EXHAUSTED", "INTERNAL", "UNAVAILABLE"].includes(code);
+}
+
+function uniqueEvidenceItems(items) {
+  const seen = new Set();
+  const unique = [];
+  for (const item of items) {
+    const link = item.link || item.url || "";
+    if (!link || seen.has(link)) continue;
+    seen.add(link);
+    unique.push(item);
+  }
+  return unique;
+}
+
+function sanitizeReportLinks(report, claimPackage, evidence) {
+  const linkIndex = buildAllowedLinkIndex(claimPackage, evidence);
+  if (typeof report.article_html === "string") {
+    report.article_html = report.article_html.replace(/<a\s+href="([^"]+)"([^>]*)>(.*?)<\/a>/g, (match, href, attrs, label) => {
+      if (linkIndex.allowed.has(href)) return match;
+      const replacement = findBestEvidenceLink(label, linkIndex.candidates);
+      if (replacement) return `<a href="${escapeAttr(replacement.link)}"${attrs}>${label}</a>`;
+      return `<span${attrs}>${label}（待人工補連結）</span>`;
+    });
+
+    report.article_html = report.article_html.replace(/<span([^>]*)>(.*?)（待人工補連結）<\/span>/g, (match, attrs, label) => {
+      const replacement = findBestEvidenceLink(label, linkIndex.candidates);
+      if (!replacement) return match;
+      return `<a href="${escapeAttr(replacement.link)}"${attrs}>${label}</a>`;
+    });
+  }
+
+  const screenshots = report.showcha_assets?.grid?.screenshots || [];
+  for (const screenshot of screenshots) {
+    if (screenshot.source_url && !linkIndex.allowed.has(screenshot.source_url)) {
+      const replacement = findBestEvidenceLink(`${screenshot.label || ""} ${screenshot.note || ""}`, linkIndex.candidates);
+      if (replacement) {
+        screenshot.source_url = replacement.link;
+      } else {
+        screenshot.note = [screenshot.note, `原建議連結「${screenshot.source_url}」未出現在 grounding evidence，需人工確認。`].filter(Boolean).join(" ");
+        screenshot.source_url = "";
       }
-    })
-  });
-  const body = await response.json();
-  if (!response.ok) throw new Error(`Gemma API failed: ${JSON.stringify(body)}`);
-  return body.candidates?.[0]?.content?.parts?.map((part) => part.text || "").join("") || "";
+    }
+  }
+}
+
+function buildAllowedLinkIndex(claimPackage, evidence) {
+  const evidenceItems = uniqueEvidenceItems([
+    ...(evidence.items || []),
+    ...(evidence.results || []).flatMap((result) => result.items || [])
+  ]);
+  const slackItems = (claimPackage.urls || []).map((link) => ({
+    title: domainFromUrl(link),
+    link,
+    source: "slack"
+  }));
+  const candidates = [...slackItems, ...evidenceItems]
+    .filter((item) => item.link)
+    .map((item) => {
+      const domain = domainFromUrl(item.link) || domainFromTitle(item.title);
+      return {
+        title: item.title || domain,
+        link: item.link,
+        domain,
+        normalizedTitle: normalizeForMatch(`${item.title || ""} ${domain} ${aliasesForDomain(domain)}`)
+      };
+    });
+  return {
+    allowed: new Set(candidates.map((item) => item.link)),
+    candidates
+  };
+}
+
+function findBestEvidenceLink(label, candidates) {
+  const normalizedLabel = normalizeForMatch(label);
+  if (!normalizedLabel) return null;
+
+  let best = null;
+  for (const candidate of candidates) {
+    const score = linkMatchScore(normalizedLabel, candidate);
+    if (!best || score > best.score) best = { ...candidate, score };
+  }
+  return best?.score >= 2 ? best : null;
+}
+
+function linkMatchScore(normalizedLabel, candidate) {
+  const title = candidate.normalizedTitle || "";
+  const domain = normalizeForMatch(candidate.domain || "");
+  let score = 0;
+
+  if (title && (title.includes(normalizedLabel) || normalizedLabel.includes(title))) score += 4;
+  if (domain && (domain.includes(normalizedLabel) || normalizedLabel.includes(domain))) score += 4;
+
+  const labelTokens = tokenSet(normalizedLabel);
+  const titleTokens = tokenSet(`${title} ${domain}`);
+  for (const token of labelTokens) {
+    if (token.length >= 2 && titleTokens.has(token)) score += 3;
+  }
+  for (const token of titleTokens) {
+    if (token.length >= 2 && normalizedLabel.includes(token)) score += 3;
+  }
+
+  return score;
+}
+
+function normalizeForMatch(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/（待人工補連結）/g, "")
+    .replace(/https?:\/\/\S+/g, " ")
+    .replace(/[^\p{Script=Han}a-z0-9.]+/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function tokenSet(value) {
+  return new Set(String(value || "").split(/\s+/).filter(Boolean));
+}
+
+function domainFromUrl(link) {
+  try {
+    const hostname = new URL(link).hostname.replace(/^www\./, "");
+    if (hostname === "vertexaisearch.cloud.google.com") return "";
+    return hostname;
+  } catch {
+    return "";
+  }
+}
+
+function domainFromTitle(title) {
+  const value = String(title || "").trim().toLowerCase();
+  return /^[a-z0-9.-]+\.[a-z]{2,}$/.test(value) ? value.replace(/^www\./, "") : "";
+}
+
+function aliasesForDomain(domain) {
+  const aliases = {
+    "udn.com": "聯合新聞網 聯合報 udn",
+    "chinatimes.com": "中國時報 中時新聞網",
+    "ltn.com.tw": "自由時報 自由財經",
+    "ettoday.net": "ETtoday 新聞雲",
+    "storm.mg": "風傳媒",
+    "thenewslens.com": "關鍵評論網 The News Lens",
+    "yahoo.com": "Yahoo 奇摩",
+    "tw.stock.yahoo.com": "Yahoo 奇摩 股市",
+    "worldjournal.com": "世界日報",
+    "forbes.com": "Forbes 富比士",
+    "theguardian.com": "The Guardian 衛報",
+    "scmp.com": "南華早報 SCMP",
+    "cnyes.com": "鉅亨網",
+    "aastocks.com": "AASTOCKS",
+    "hk01.com": "香港01",
+    "cmmedia.com.tw": "信傳媒",
+    "peoplenews.tw": "民報",
+    "gvm.com.tw": "遠見",
+    "tvbs.com.tw": "TVBS",
+    "facebook.com": "Facebook 臉書",
+    "x.com": "X Twitter"
+  };
+  return aliases[domain] || "";
 }
 
 function parseJsonObject(text) {
@@ -306,13 +589,18 @@ function parseJsonObject(text) {
 
 async function slackApi(env, method, payload) {
   if (!env.SLACK_BOT_TOKEN) throw new Error("SLACK_BOT_TOKEN is missing");
+  const body = new URLSearchParams();
+  for (const [key, value] of Object.entries(payload)) {
+    if (value === undefined || value === null) continue;
+    body.set(key, typeof value === "string" ? value : JSON.stringify(value));
+  }
   const response = await fetch(`https://slack.com/api/${method}`, {
     method: "POST",
     headers: {
       authorization: `Bearer ${env.SLACK_BOT_TOKEN}`,
-      "content-type": "application/json;charset=UTF-8"
+      "content-type": "application/x-www-form-urlencoded"
     },
-    body: JSON.stringify(payload)
+    body
   });
   return response.json();
 }
@@ -371,6 +659,224 @@ function stripSlackMentions(text) {
 function extractUrls(text) {
   const matches = text.match(/https?:\/\/[^\s>|]+/g) || [];
   return matches.map((url) => url.replace(/[),.。]+$/g, ""));
+}
+
+function renderJobsListPage(jobs, url) {
+  const rows = jobs.length
+    ? jobs.map((job) => {
+      const title = job.report?.title || job.searchPlan?.claim || job.id;
+      return `<a class="job-row" href="/jobs/${encodeURIComponent(job.id)}">
+        <span class="status ${escapeAttr(job.status || "unknown")}">${escapeHtml(job.status || "unknown")}</span>
+        <span>
+          <strong>${escapeHtml(title)}</strong>
+          <small>${escapeHtml(job.updatedAt || job.createdAt || "")}</small>
+        </span>
+      </a>`;
+    }).join("")
+    : `<div class="empty">目前還沒有查核 job。到 Slack thread 留 <code>@Factcheck 查核</code> 後，完成結果會出現在這裡。</div>`;
+
+  return layout("Factcheck Jobs", `
+    <header class="page-head">
+      <div>
+        <p class="eyebrow">Factcheck</p>
+        <h1>查核文章後台</h1>
+      </div>
+      <a class="button" href="${escapeAttr(url.origin)}">重新整理</a>
+    </header>
+    <section class="panel">
+      <div class="panel-title">
+        <h2>最近任務</h2>
+        <span>${jobs.length} jobs</span>
+      </div>
+      <div class="job-list">${rows}</div>
+    </section>
+  `);
+}
+
+function renderJobPage(job, url) {
+  const report = job.report || {};
+  const cover = report.showcha_assets?.cover || {};
+  const screenshots = report.showcha_assets?.grid?.screenshots || [];
+  const articleHtml = report.article_html || "";
+  const evidenceLinks = uniqueEvidenceItems(job.evidence?.items || []).slice(0, 12);
+  return layout(report.title || "查核任務", `
+    <header class="page-head">
+      <div>
+        <p class="eyebrow">Job ${escapeHtml(job.id)}</p>
+        <h1>${escapeHtml(report.title || job.searchPlan?.claim || "查核任務")}</h1>
+      </div>
+      <a class="button" href="/jobs">返回列表</a>
+    </header>
+
+    <section class="summary-grid">
+      ${summaryCard("狀態", job.status || "unknown")}
+      ${summaryCard("永久連結", report.permalink || "待補")}
+      ${summaryCard("標籤", (report.tags || []).join(", ") || "待補")}
+    </section>
+
+    <section class="panel">
+      <div class="panel-title">
+        <h2>Blogger HTML</h2>
+        <button class="button primary" data-copy-target="article-html">複製 HTML</button>
+      </div>
+      <textarea id="article-html" spellcheck="false">${escapeHtml(articleHtml)}</textarea>
+    </section>
+
+    <section class="panel">
+      <div class="panel-title">
+        <h2>文章資訊</h2>
+        <button class="button" data-copy-target="metadata">複製資訊</button>
+      </div>
+      <textarea id="metadata" spellcheck="false">${escapeHtml([
+        `標題：${report.title || ""}`,
+        `標籤：${(report.tags || []).join(",")}`,
+        `永久連結：${report.permalink || ""}`,
+        `搜尋說明：${report.search_description || ""}`
+      ].join("\n"))}</textarea>
+    </section>
+
+    <section class="two-col">
+      <div class="panel">
+        <h2>首圖製作</h2>
+        <dl>
+          <dt>工具</dt><dd><a href="${escapeAttr(cover.tool_url || "https://cover.showcha.com/")}" target="_blank" rel="noreferrer">cover.showcha.com</a></dd>
+          <dt>標題</dt><dd>${escapeHtml(cover.headline || "")}</dd>
+          <dt>判定</dt><dd>${escapeHtml(cover.verdict || "")}</dd>
+          <dt>素材備註</dt><dd>${escapeHtml(cover.source_image_notes || "")}</dd>
+        </dl>
+      </div>
+      <div class="panel">
+        <h2>截圖組合</h2>
+        <p><a href="${escapeAttr(report.showcha_assets?.grid?.tool_url || "https://grid.showcha.com/")}" target="_blank" rel="noreferrer">grid.showcha.com</a></p>
+        <ul class="plain-list">
+          ${screenshots.map((item) => `<li><strong>${escapeHtml(item.label || "截圖")}</strong><br />${escapeHtml(item.note || "")}${item.source_url ? `<br /><a href="${escapeAttr(item.source_url)}" target="_blank" rel="noreferrer">${escapeHtml(item.source_url)}</a>` : ""}</li>`).join("") || "<li>待補截圖清單</li>"}
+        </ul>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>證據來源</h2>
+      <ul class="plain-list">
+        ${evidenceLinks.map((item) => `<li><a href="${escapeAttr(item.link)}" target="_blank" rel="noreferrer">${escapeHtml(item.title || item.link)}</a></li>`).join("") || "<li>目前沒有 grounding 來源，需人工補充。</li>"}
+      </ul>
+    </section>
+
+    <section class="panel">
+      <div class="panel-title">
+        <h2>API</h2>
+        <a class="button" href="/api/jobs/${encodeURIComponent(job.id)}">開啟 JSON</a>
+      </div>
+      <code>${escapeHtml(new URL(`/api/jobs/${encodeURIComponent(job.id)}`, url).toString())}</code>
+    </section>
+  `);
+}
+
+function renderNotFoundPage(id) {
+  return layout("找不到任務", `
+    <section class="panel">
+      <h1>找不到任務</h1>
+      <p>Job <code>${escapeHtml(id)}</code> 不存在或已過期。</p>
+      <a class="button" href="/jobs">返回列表</a>
+    </section>
+  `);
+}
+
+function summaryCard(label, value) {
+  return `<div class="summary-card"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`;
+}
+
+function layout(title, body) {
+  return `<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>${escapeHtml(title)}</title>
+  <style>
+    :root { color-scheme: light; --bg: #f7f7f4; --ink: #1f2328; --muted: #687076; --line: #d9ddd7; --panel: #ffffff; --accent: #0f766e; --accent-ink: #ffffff; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.5; }
+    main { width: min(1120px, calc(100vw - 32px)); margin: 0 auto; padding: 32px 0 56px; }
+    h1, h2, p { margin-top: 0; }
+    h1 { font-size: 30px; line-height: 1.2; margin-bottom: 0; }
+    h2 { font-size: 18px; margin-bottom: 14px; }
+    a { color: #0b5cad; }
+    .page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+    .eyebrow { color: var(--muted); font-size: 13px; margin-bottom: 6px; }
+    .panel, .summary-card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 18px; margin-bottom: 16px; }
+    .panel-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+    .panel-title h2 { margin: 0; }
+    .button { appearance: none; border: 1px solid var(--line); background: #fff; color: var(--ink); border-radius: 6px; padding: 9px 12px; font: inherit; text-decoration: none; cursor: pointer; white-space: nowrap; }
+    .button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+    .job-list { display: grid; gap: 8px; }
+    .job-row { display: grid; grid-template-columns: 150px 1fr; gap: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 6px; text-decoration: none; color: inherit; background: #fbfbfa; }
+    .job-row small { display: block; color: var(--muted); margin-top: 3px; }
+    .status { display: inline-flex; align-items: center; justify-content: center; min-height: 28px; padding: 3px 8px; border-radius: 999px; background: #eef2f1; color: #36514d; font-size: 13px; }
+    .status.done { background: #dff3e8; color: #11603d; }
+    .status.failed { background: #fde2e1; color: #9f1d1d; }
+    .status.queued { background: #fff1cf; color: #7a4b00; }
+    .summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .summary-card span { display: block; color: var(--muted); font-size: 13px; margin-bottom: 6px; }
+    .summary-card strong { display: block; overflow-wrap: anywhere; }
+    textarea { width: 100%; min-height: 340px; resize: vertical; border: 1px solid var(--line); border-radius: 6px; padding: 12px; font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--ink); background: #fbfbfa; }
+    #metadata { min-height: 150px; }
+    .two-col { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    dl { display: grid; grid-template-columns: 80px 1fr; gap: 8px 12px; margin: 0; }
+    dt { color: var(--muted); }
+    dd { margin: 0; overflow-wrap: anywhere; }
+    .plain-list { margin: 0; padding-left: 20px; }
+    .plain-list li { margin-bottom: 10px; overflow-wrap: anywhere; }
+    .empty { color: var(--muted); padding: 20px 0; }
+    code { overflow-wrap: anywhere; }
+    @media (max-width: 760px) {
+      main { width: min(100vw - 20px, 1120px); padding-top: 18px; }
+      .page-head, .panel-title { align-items: stretch; flex-direction: column; }
+      .summary-grid, .two-col, .job-row { grid-template-columns: 1fr; }
+      h1 { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <main>${body}</main>
+  <script>
+    document.addEventListener("click", async (event) => {
+      const button = event.target.closest("[data-copy-target]");
+      if (!button) return;
+      const target = document.getElementById(button.dataset.copyTarget);
+      if (!target) return;
+      await navigator.clipboard.writeText(target.value || target.textContent || "");
+      const label = button.textContent;
+      button.textContent = "已複製";
+      setTimeout(() => { button.textContent = label; }, 1200);
+    });
+  </script>
+</body>
+</html>`;
+}
+
+function publicUrl(env, path) {
+  const base = (env.PUBLIC_BASE_URL || "https://factcheck-slack-worker.charlestyyeh.workers.dev").replace(/\/+$/g, "");
+  return `${base}${path}`;
+}
+
+function html(value, status = 200) {
+  return new Response(value, {
+    status,
+    headers: { "content-type": "text/html;charset=UTF-8" }
+  });
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function escapeAttr(value) {
+  return escapeHtml(value).replace(/`/g, "&#96;");
 }
 
 function json(value, status = 200) {
