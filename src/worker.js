@@ -294,6 +294,10 @@ async function generateReport(env, claimPackage, evidence) {
     "3. 資料來源只列 evidence.items、evidence.results.items 或 Slack 線索 urls 中真的存在的連結；必須直接使用 evidence 中的 link 欄位，不可自行新增任何 URL。",
     "4. showcha_assets 要包含 cover.showcha.com 首圖製作文案、grid.showcha.com 截圖組合清單。",
     "5. 如果 evidence.mode 是 manual_required，請明確把草稿標記為待人工查證，不要寫成已完成定稿。",
+    "6. 查證解釋區塊必須寫成 MyGoPen 式分段長文：放在 <blockquote class=\"yestrue\"> 內，至少包含 2 個 <h3 style=\"text-align: left;\">小標</h3><br />，最後一個小標必須是「結論」。",
+    "7. 查證解釋區塊的小節應依題材自然命名，例如「網傳影片的原始來源為何？」、「傳言流傳脈絡為何？」、「實際狀況為何？」、「結論」。",
+    "8. 查證解釋區塊內的段落必須使用 <br /><br /> 分隔；可用（一）（二）（三）呈現查證步驟；重要查核句可用 <b><span style=\"color: red;\">重點文字</span></b> 標示。",
+    "9. 不要只寫摘要式結論；查證解釋至少要清楚交代：原始來源或可追溯線索、流傳脈絡或主張形成方式、證據如何支持/反駁、結論。",
     "只輸出 JSON，不要 markdown。",
     "JSON schema:",
     '{"title":"","article_html":"","tags":[""],"permalink":"","search_description":"","showcha_assets":{"cover":{"tool_url":"","headline":"","verdict":"","source_image_notes":""},"grid":{"tool_url":"","screenshots":[{"label":"","source_url":"","note":""}]}}}',
@@ -313,6 +317,7 @@ async function generateReport(env, claimPackage, evidence) {
   report.showcha_assets.grid ||= {};
   report.showcha_assets.cover.tool_url = env.COVER_TOOL_URL || "https://cover.showcha.com/";
   report.showcha_assets.grid.tool_url = env.GRID_TOOL_URL || "https://grid.showcha.com/";
+  normalizeFactcheckExplanation(report);
   sanitizeReportLinks(report, claimPackage, evidence);
   return report;
 }
@@ -332,7 +337,7 @@ function bloggerTemplate() {
 <br />圖片<br />
 查證解釋：<br />
 <blockquote class="yestrue">
-闢謠內容
+<h3 style="text-align: left;">網傳內容的原始來源為何？</h3><br />（一）第一段查證內容，說明反搜、關鍵字搜尋或原始來源比對結果。<br /><br />（二）第二段查證內容，引用 evidence 中的資料來源連結，說明可驗證的事實。<br /><br /><h3 style="text-align: left;">傳言流傳脈絡為何？</h3><br />（一）說明傳言如何在社群平台流傳，或如何被截圖、剪輯、移花接木。<br /><br />（二）說明哪些說法缺乏證據、哪些說法可被來源支持。<br /><br /><h3 style="text-align: left;">結論</h3><br />用一段完整文字總結查核結果、錯誤或誤導之處，以及正確脈絡。
 </blockquote>
 <br />資料來源：文獻 - <a href="https://www.blogger.com/#">文獻的標題內容</a><br />`;
 }
@@ -458,6 +463,32 @@ function sanitizeReportLinks(report, claimPackage, evidence) {
       }
     }
   }
+}
+
+function normalizeFactcheckExplanation(report) {
+  if (typeof report.article_html !== "string") return;
+  report.article_html = report.article_html.replace(
+    /<blockquote class="yestrue">([\s\S]*?)<\/blockquote>/,
+    (match, content) => {
+      const hasHeading = /<h3\b[^>]*>/i.test(content);
+      const hasConclusion = /<h3\b[^>]*>\s*結論\s*<\/h3>/i.test(content);
+      if (hasHeading && hasConclusion) return match;
+
+      const paragraphs = content
+        .split(/<br\s*\/?><br\s*\/?>/i)
+        .map((part) => part.trim())
+        .filter(Boolean);
+      if (!paragraphs.length) return match;
+
+      const first = paragraphs.slice(0, Math.max(1, paragraphs.length - 1)).join("<br /><br />");
+      const last = paragraphs[paragraphs.length - 1];
+      const normalized = [
+        hasHeading ? first : `<h3 style="text-align: left;">查證過程為何？</h3><br />${first}`,
+        hasConclusion ? "" : `<h3 style="text-align: left;">結論</h3><br />${last}`
+      ].filter(Boolean).join("<br /><br />");
+      return `<blockquote class="yestrue">\n${normalized}\n</blockquote>`;
+    }
+  );
 }
 
 function buildAllowedLinkIndex(claimPackage, evidence) {
@@ -698,6 +729,7 @@ function renderJobPage(job, url) {
   const cover = report.showcha_assets?.cover || {};
   const screenshots = report.showcha_assets?.grid?.screenshots || [];
   const articleHtml = report.article_html || "";
+  const previewDocument = renderArticlePreviewDocument(report.title || "", articleHtml);
   const evidenceLinks = uniqueEvidenceItems(job.evidence?.items || []).slice(0, 12);
   return layout(report.title || "查核任務", `
     <header class="page-head">
@@ -712,6 +744,14 @@ function renderJobPage(job, url) {
       ${summaryCard("狀態", job.status || "unknown")}
       ${summaryCard("永久連結", report.permalink || "待補")}
       ${summaryCard("標籤", (report.tags || []).join(", ") || "待補")}
+    </section>
+
+    <section class="panel">
+      <div class="panel-title">
+        <h2>文章預覽</h2>
+        <a class="button" href="#article-html">查看 HTML</a>
+      </div>
+      <iframe class="article-preview" title="文章預覽" sandbox="allow-popups allow-popups-to-escape-sandbox" srcdoc="${escapeAttr(previewDocument)}"></iframe>
     </section>
 
     <section class="panel">
@@ -785,6 +825,38 @@ function summaryCard(label, value) {
   return `<div class="summary-card"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`;
 }
 
+function renderArticlePreviewDocument(title, articleHtml) {
+  return `<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <base target="_blank" />
+  <style>
+    body { margin: 0; padding: 28px; color: #202124; background: #fff; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 17px; line-height: 1.75; }
+    .preview-shell { max-width: 760px; margin: 0 auto; }
+    h1 { font-size: 30px; line-height: 1.28; margin: 0 0 18px; }
+    h2 { font-size: 24px; line-height: 1.35; margin: 28px 0 12px; }
+    h3 { font-size: 19px; margin: 0 0 10px; }
+    a { color: #0969da; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+    img, iframe, object, video { display: block; max-width: 100%; margin: 14px auto; }
+    blockquote { margin: 14px 0; padding: 14px 18px; border-left: 4px solid #9ca3af; background: #f6f7f8; }
+    .quote_style { margin: 0 0 18px; padding: 18px; border: 1px solid #cfe5dd; background: #eef8f4; border-radius: 8px; }
+    .intro_words { margin: 0 0 18px; padding: 16px 0; font-size: 18px; }
+    .tr_bq { border-left-color: #d97706; background: #fff7ed; }
+    .yestrue { border-left-color: #0f766e; background: #f0fdfa; }
+    .separator, .img_container, .video_container { clear: both; text-align: center; }
+  </style>
+</head>
+<body>
+  <article class="preview-shell">
+    ${title ? `<h1>${escapeHtml(title)}</h1>` : ""}
+    ${articleHtml || `<p>目前還沒有可預覽的文章 HTML。</p>`}
+  </article>
+</body>
+</html>`;
+}
+
 function layout(title, body) {
   return `<!doctype html>
 <html lang="zh-Hant">
@@ -818,6 +890,7 @@ function layout(title, body) {
     .summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
     .summary-card span { display: block; color: var(--muted); font-size: 13px; margin-bottom: 6px; }
     .summary-card strong { display: block; overflow-wrap: anywhere; }
+    .article-preview { width: 100%; min-height: 720px; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
     textarea { width: 100%; min-height: 340px; resize: vertical; border: 1px solid var(--line); border-radius: 6px; padding: 12px; font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--ink); background: #fbfbfa; }
     #metadata { min-height: 150px; }
     .two-col { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
@@ -833,6 +906,7 @@ function layout(title, body) {
       .page-head, .panel-title { align-items: stretch; flex-direction: column; }
       .summary-grid, .two-col, .job-row { grid-template-columns: 1fr; }
       h1 { font-size: 24px; }
+      .article-preview { min-height: 560px; }
     }
   </style>
 </head>
