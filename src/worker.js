@@ -97,7 +97,10 @@ async function handleSlackEvent(request, env, ctx) {
     createdAt: new Date().toISOString()
   });
 
-  await postSlackMessage(env, channel, threadTs, `收到，開始整理查核線索。Job ID: \`${jobId}\``);
+  const slackRes = await postSlackMessage(env, channel, threadTs, `收到，開始整理查核線索。Job ID: \`${jobId}\``);
+  if (!slackRes.ok) {
+    console.error("Slack postMessage failed:", slackRes.error);
+  }
 
   // Keep Slack's Events API response fast. The scheduled worker processes queued jobs.
   if (env.PROCESS_IMMEDIATELY === "true") {
