@@ -176,9 +176,8 @@ function normalizeJobForOutput(job) {
 
 async function runFactcheckJob(env, { jobId, channel, threadTs }) {
   try {
-    await updateJob(env, jobId, { status: "collecting_slack_context" });
     // 合併狀態更新，只在關鍵節點更新 KV
-    await updateJob(env, jobId, { status: "processing" });
+    await updateJob(env, jobId, { status: "processing" }); // Initial status after being picked up from queue
     
     const thread = await fetchSlackThread(env, channel, threadTs);
     const claimPackage = buildClaimPackage(thread);
