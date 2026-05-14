@@ -89,14 +89,14 @@ async function handleSlackEvent(request, env, ctx) {
 
   const event = payload.event || {};
   const eventText = event.text || "";
-  console.log(`[Slack Event] Type: ${event.type}, Channel: ${event.channel}, User: ${event.user}, Text: "${eventText}"`);
+  console.log(`[Slack Event] ID: ${payload.event_id}, Type: ${event.type}, Channel: ${event.channel}, Text: "${eventText}"`);
 
   if (event.bot_id || event.subtype === "bot_message") {
     return json({ ok: true });
   }
 
   if (!isFactcheckTrigger(event)) {
-    console.log(`[Trigger Ignored] Event does not match COMMAND_PATTERN or mention rules.`);
+    console.log(`[Trigger Ignored] Event ${payload.event_id} ignored.`);
     return json({ ok: true, ignored: true });
   }
 
@@ -104,32 +104,33 @@ async function handleSlackEvent(request, env, ctx) {
   const threadTs = event.thread_ts || event.ts;
   const jobId = `${channel}-${threadTs}`.replace(/[^A-Za-z0-9_-]/g, "-");
 
-  await saveJob(env, jobId, {
-    ok: true,
-    id: jobId,
-    status: "queued",
-    channel,
-    threadTs,
-    createdAt: new Date().toISOString()
-  });
+  // 使用 ctx.waitUntil 將耗時的 KV 操作與 Slack 回覆移至背景處理
+  // 這樣我們可以立刻回傳 200 OK 給 Slack 避免重試
+  ctx.waitUntil((async () => {
+    await saveJob(env, jobId, {
+      ok: true,
+      id: jobId,
+      status: "queued",
+      channel,
+      threadTs,
+      createdAt: new Date().toISOString()
+    });
 
-  const slackRes = await postSlackMessage(env, channel, threadTs, `收到，開始整理查核線索。Job ID: \`${jobId}\``);
-  
-  // 這裡非常重要，如果回覆失敗，Slack 會給原因（例如 missing_scope 或 not_in_channel）
-  if (!slackRes.ok) {
-    console.error(`[Slack Error] Job: ${jobId}, Error: ${slackRes.error}`);
-  } else {
-    console.log(`[Slack Success] Sent confirmation to ${channel}`);
-  }
+    const slackRes = await postSlackMessage(env, channel, threadTs, `收到，開始整理查核線索。Job ID: \`${jobId}\``);
+    
+    if (!slackRes.ok) {
+      console.error(`[Slack Error] Event: ${payload.event_id}, Job: ${jobId}, Error: ${slackRes.error}`);
+    } else {
+      console.log(`[Slack Success] Event: ${payload.event_id}, Sent confirmation to ${channel}`);
+    }
 
-  // Keep Slack's Events API response fast. The scheduled worker processes queued jobs.
-  if (env.PROCESS_IMMEDIATELY === "true") {
-    const work = runFactcheckJob(env, { jobId, channel, threadTs });
-    if (typeof ctx?.waitUntil === "function") ctx.waitUntil(work);
-    else await work;
-  }
+    if (env.PROCESS_IMMEDIATELY === "true") {
+      await runFactcheckJob(env, { jobId, channel, threadTs });
+    }
+  })());
 
-  return json({ ok: true, jobId });
+  // 立即回傳回應給 Slack
+  return json({ ok: true, jobId, message: "accepted" });
 }
 
 async function handleReviewUpdate(request, env, jobId) {
