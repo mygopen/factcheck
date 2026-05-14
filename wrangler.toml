@@ -2,6 +2,10 @@ name = "factcheck-slack-worker"
 main = "src/worker.js"
 compatibility_date = "2026-05-12"
 
+routes = [
+  { pattern = "factcheck.showcha.com", custom_domain = true }
+]
+
 [triggers]
 crons = ["* * * * *"]
 
