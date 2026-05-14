@@ -1128,7 +1128,7 @@ function layout(title, body) {
 }
 
 function publicUrl(env, path) {
-  const base = (env.PUBLIC_BASE_URL || "https://factcheck-slack-worker.charlestyyeh.workers.dev").replace(/\/+$/g, "");
+  const base = (env.PUBLIC_BASE_URL || "https://factcheck.showcha.com").replace(/\/+$/g, "");
   return `${base}${path}`;
 }
 
