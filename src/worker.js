@@ -126,13 +126,13 @@ async function handleSlackEvent(request, env, ctx) {
     const slackRes = await postSlackMessage(env, channel, threadTs, `收到，開始整理查核線索。Job ID: \`${jobId}\``);
 
     if (!slackRes.ok) {
-      console.error(`[Slack Error] Event: ${payload.event_id || "unknown"}, Job: ${jobId}, Error: ${slackRes.error}`);
+      console.error(`[Slack Error] Event: ${eventId}, Error: ${slackRes.error}`);
     } else {
-      console.log(`[Slack Success] Event: ${payload.event_id || "unknown"}, Sent confirmation to ${channel}`);
+      console.log(`[Slack Success] Event: ${eventId} handled.`);
     }
   })());
 
-  // 立即回傳回應給 Slack
+  // 5. 立即回傳 200 OK，這會讓 Slack 停止重試
   return json({ ok: true, jobId, message: "accepted" });
 }
 
@@ -796,11 +796,10 @@ async function postSlackMessage(env, channel, threadTs, text) {
   });
 }
 
-async function verifySlackSignature(request, rawBody, signingSecret) {
+async function verifySlackSignature(timestamp, signature, rawBody, signingSecret) {
   if (!signingSecret) throw new Error("SLACK_SIGNING_SECRET is missing");
-  const timestamp = request.headers.get("x-slack-request-timestamp");
-  const signature = request.headers.get("x-slack-signature") || "";
-  if (!timestamp || Math.abs(Date.now() / 1000 - Number(timestamp)) > 60 * 5) return false;
+  if (!timestamp || !signature) return false;
+  if (Math.abs(Date.now() / 1000 - Number(timestamp)) > 60 * 5) return false;
 
   const base = `v0:${timestamp}:${rawBody}`;
   const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(signingSecret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
