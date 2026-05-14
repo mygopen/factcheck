@@ -139,32 +139,21 @@ async function handleReviewUpdate(request, env, jobId) {
 }
 
 async function processQueuedJobs(env) {
+  // 掃描最近的任務，提升至一次處理多個以增加吞吐量
   const list = await env.FACTCHECK_JOBS.list({ prefix: "job:", limit: 20 });
-  // 這裡可以考慮增加 limit，並透過並行處理提升吞吐量
-  const list = await env.FACTCHECK_JOBS.list({ prefix: "job:", limit: 10 });
   const queued = [];
   
   for (const key of list.keys || []) {
-    // 如果 KV 支援 metadata，可以直接從 key.metadata 判斷 status，不用 get
     const job = await env.FACTCHECK_JOBS.get(key.name, "json");
     if (job?.status === "queued") queued.push(job);
-    if (queued.length >= 2) break;
-    if (queued.length >= 5) break; // 提高每分鐘處理上限
+    if (queued.length >= 5) break; 
   }
 
-  for (const job of queued) {
-    await runFactcheckJob(env, {
   if (queued.length === 0) return;
 
-  // 使用 Promise.allSettled 並行執行，避免序列等待
-  await Promise.allSettled(queued.map(job => 
-    runFactcheckJob(env, {
-      jobId: job.id,
-      channel: job.channel,
-      threadTs: job.threadTs
-    });
-  }
-    })
+  // 使用 Promise.allSettled 並行處理，提升效率並縮短 Cron Trigger 執行時間
+  await Promise.allSettled(queued.map(job =>
+    runFactcheckJob(env, { jobId: job.id, channel: job.channel, threadTs: job.threadTs })
   ));
 }
 
@@ -194,22 +183,16 @@ async function runFactcheckJob(env, { jobId, channel, threadTs }) {
     const thread = await fetchSlackThread(env, channel, threadTs);
     const claimPackage = buildClaimPackage(thread);
 
-    await updateJob(env, jobId, { status: "planning_search", claimPackage });
+    // 內部執行時減少 KV 更新次數，改為一次性寫入最終結果
     const searchPlan = await generateSearchPlan(env, claimPackage);
-
-    await updateJob(env, jobId, { status: "searching_evidence", searchPlan });
     const evidence = await searchEvidence(env, searchPlan);
-
-    await updateJob(env, jobId, { status: "writing_report", evidence });
     const report = await generateReport(env, claimPackage, evidence);
 
     const result = {
       status: "done",
       finishedAt: new Date().toISOString(),
-      // 將中間產物一併存入，減少 updateJob 呼叫次數
       claimPackage,
       searchPlan,
-      finishedAt: new Date().toISOString(),
       evidence,
       report
     };
