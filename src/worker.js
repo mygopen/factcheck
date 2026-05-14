@@ -69,6 +69,7 @@ async function handleDraftRequest(request, env) {
 }
 
 async function handleSlackEvent(request, env, ctx) {
+  const startTime = Date.now();
   const rawBody = await request.text();
   const payload = JSON.parse(rawBody);
   if (payload.type === "url_verification") {
@@ -128,7 +129,8 @@ async function handleSlackEvent(request, env, ctx) {
     if (!slackRes.ok) {
       console.error(`[Slack Error] Event: ${eventId}, Error: ${slackRes.error}`);
     } else {
-      console.log(`[Slack Success] Event: ${eventId} handled.`);
+      const duration = Date.now() - startTime;
+      console.log(`[Slack Success] Event: ${eventId} handled in ${duration}ms.`);
     }
   })());
 
