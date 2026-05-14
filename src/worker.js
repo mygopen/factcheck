@@ -75,38 +75,45 @@ async function handleSlackEvent(request, env, ctx) {
     return new Response(payload.challenge, { headers: { "content-type": "text/plain;charset=UTF-8" } });
   }
 
-  // 處理 Slack 重試機制：如果是重試請求則記錄並直接回覆，避免重複處理
-  const retryNum = request.headers.get("x-slack-retry-num");
-  if (retryNum) {
-    console.log(`[Slack Retry] Ignoring retry attempt #${retryNum} for event ${payload.event_id}`);
-    return json({ ok: true, message: "retry_ignored" });
-  }
-
-  const verified = await verifySlackSignature(request, rawBody, env.SLACK_SIGNING_SECRET);
-  if (!verified) return json({ ok: false, error: "invalid_signature" }, 401);
-
-  if (payload.type !== "event_callback") return json({ ok: true });
-
-  const event = payload.event || {};
-  const eventText = event.text || "";
-  console.log(`[Slack Event] ID: ${payload.event_id}, Type: ${event.type}, Channel: ${event.channel}, Text: "${eventText}"`);
-
-  if (event.bot_id || event.subtype === "bot_message") {
-    return json({ ok: true });
-  }
-
-  if (!isFactcheckTrigger(event)) {
-    console.log(`[Trigger Ignored] Event ${payload.event_id} ignored.`);
-    return json({ ok: true, ignored: true });
-  }
-
-  const channel = event.channel;
-  const threadTs = event.thread_ts || event.ts;
-  const jobId = `${channel}-${threadTs}`.replace(/[^A-Za-z0-9_-]/g, "-");
-
-  // 使用 ctx.waitUntil 將耗時的 KV 操作與 Slack 回覆移至背景處理
-  // 這樣我們可以立刻回傳 200 OK 給 Slack 避免重試
+  // 立即回傳 200 OK 給 Slack，所有後續處理都移入 ctx.waitUntil
+  // 這樣可以確保 Slack 不會因為超時而重試
   ctx.waitUntil((async () => {
+    // 處理 Slack 重試機制：如果是重試請求則記錄並直接回覆，避免重複處理
+    const retryNum = request.headers.get("x-slack-retry-num");
+    if (retryNum) {
+      console.log(`[Slack Retry] Ignoring retry attempt #${retryNum} for event ${payload.event_id}`);
+      return; // 退出 waitUntil，不處理重試
+    }
+
+    const verified = await verifySlackSignature(request, rawBody, env.SLACK_SIGNING_SECRET);
+    if (!verified) {
+      console.error(`[Slack Error] Invalid signature for event ${payload.event_id}`);
+      return; // 退出 waitUntil，不處理無效簽名
+    }
+
+    if (payload.type !== "event_callback") {
+      console.log(`[Slack Event] Non-event_callback payload type: ${payload.type}`);
+      return; // 退出 waitUntil，不處理非事件回調
+    }
+
+    const event = payload.event || {};
+    const eventText = event.text || "";
+    console.log(`[Slack Event] ID: ${payload.event_id}, Type: ${event.type}, Channel: ${event.channel}, Text: "${eventText}"`);
+
+    if (event.bot_id || event.subtype === "bot_message") {
+      console.log(`[Trigger Ignored] Bot message for event ${payload.event_id}`);
+      return; // 退出 waitUntil，不處理機器人自己的訊息
+    }
+
+    if (!isFactcheckTrigger(event)) {
+      console.log(`[Trigger Ignored] Event ${payload.event_id} ignored.`);
+      return; // 退出 waitUntil，不處理不符合觸發條件的事件
+    }
+
+    const channel = event.channel;
+    const threadTs = event.thread_ts || event.ts;
+    const jobId = `${channel}-${threadTs}`.replace(/[^A-Za-z0-9_-]/g, "-");
+
     await saveJob(env, jobId, {
       ok: true,
       id: jobId,
@@ -117,15 +124,11 @@ async function handleSlackEvent(request, env, ctx) {
     });
 
     const slackRes = await postSlackMessage(env, channel, threadTs, `收到，開始整理查核線索。Job ID: \`${jobId}\``);
-    
+
     if (!slackRes.ok) {
       console.error(`[Slack Error] Event: ${payload.event_id}, Job: ${jobId}, Error: ${slackRes.error}`);
     } else {
       console.log(`[Slack Success] Event: ${payload.event_id}, Sent confirmation to ${channel}`);
-    }
-
-    if (env.PROCESS_IMMEDIATELY === "true") {
-      await runFactcheckJob(env, { jobId, channel, threadTs });
     }
   })());
 
