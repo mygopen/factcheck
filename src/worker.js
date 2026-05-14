@@ -70,7 +70,7 @@ async function handleSlackEvent(request, env, ctx) {
 
   const event = payload.event || {};
   if (event.bot_id || event.subtype === "bot_message") return json({ ok: true });
-  if (!COMMAND_PATTERN.test(stripSlackMentions(event.text || ""))) return json({ ok: true, ignored: true });
+  if (!isFactcheckTrigger(event)) return json({ ok: true, ignored: true });
 
   const channel = event.channel;
   const threadTs = event.thread_ts || event.ts;
@@ -215,6 +215,17 @@ function isRelevantClaimMessage(message) {
   if (/^(查核|factcheck|\/factcheck)$/i.test(text.trim())) return false;
   if (/^(收到，開始整理查核線索|查核草稿產生失敗|查核草稿完成)/.test(text.trim())) return false;
   return Boolean(text.trim());
+}
+
+function isFactcheckTrigger(event) {
+  const text = stripSlackMentions(event.text || "");
+  if (COMMAND_PATTERN.test(text)) return true;
+  if (event.type !== "app_mention") return false;
+  return isMentionOnlyText(text);
+}
+
+function isMentionOnlyText(text) {
+  return text.replace(/[\s:：,，.。!！?？-]/g, "").trim() === "";
 }
 
 function normalizeSlackFile(file) {

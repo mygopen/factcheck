@@ -4,7 +4,7 @@
 
 ## 目前流程
 
-1. 在 Slack 某個貼文底下留言 `查核`、`factcheck` 或 `/factcheck`。
+1. 在 Slack 某個貼文底下留言 `@Factcheck`、`查核`、`factcheck` 或 `/factcheck`。
 2. Slack Events API 呼叫 Cloudflare Worker 的 `/slack/events`。
 3. Worker 先把 job 存進 Cloudflare KV 並回覆 Slack，避免 Slack 事件逾時。
 4. Cloudflare Cron 每分鐘處理 queued job，抓取該 thread 原文、留言、連結與 Slack 附件 metadata。
@@ -36,7 +36,7 @@ https://你的-worker網域/jobs
   - `message.channels`
   - `message.groups`
 
-如果你不想讓 bot 讀所有 channel 訊息，可以先只開 `app_mention`，使用方式改成在 thread 裡留言 `@你的bot 查核`。
+如果你不想讓 bot 讀所有 channel 訊息，可以先只開 `app_mention`，使用方式改成在 thread 裡留言 `@你的bot`。
 
 ### 2. Google AI Studio
 
