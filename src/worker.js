@@ -19,6 +19,18 @@ export default {
       return job ? html(renderJobPage(normalizeJobForOutput(job), url)) : html(renderNotFoundPage(id), 404);
     }
 
+    if (request.method === "GET" && url.pathname.startsWith("/jobs/") && url.pathname.endsWith("/review")) {
+      const id = decodeURIComponent(url.pathname.slice("/jobs/".length, -("/review".length)));
+      const job = await env.FACTCHECK_JOBS.get(jobKey(id), "json");
+      return job ? html(renderReviewPage(normalizeJobForOutput(job), url)) : html(renderNotFoundPage(id), 404);
+    }
+
+    if (request.method === "POST" && url.pathname.startsWith("/jobs/") && url.pathname.endsWith("/review")) {
+      const id = decodeURIComponent(url.pathname.slice("/jobs/".length, -("/review".length)));
+      return handleReviewUpdate(request, env, id);
+    }
+
+
     if (request.method === "GET" && url.pathname.startsWith("/api/jobs/")) {
       const id = url.pathname.split("/").pop();
       const job = await env.FACTCHECK_JOBS.get(jobKey(id), "json");
@@ -97,22 +109,63 @@ async function handleSlackEvent(request, env, ctx) {
   return json({ ok: true, jobId });
 }
 
+async function handleReviewUpdate(request, env, jobId) {
+  const formData = await request.formData();
+  const title = formData.get("title");
+  const articleHtml = formData.get("article_html");
+  const tags = formData.get("tags");
+  const permalink = formData.get("permalink");
+  const searchDescription = formData.get("search_description");
+
+  const currentJob = (await env.FACTCHECK_JOBS.get(jobKey(jobId), "json")) || { id: jobId };
+
+  const updatedReport = {
+    ...currentJob.report,
+    title: title || "",
+    article_html: articleHtml || "",
+    tags: tags ? tags.split(",").map(tag => tag.trim()).filter(Boolean) : [],
+    permalink: permalink || "",
+    search_description: searchDescription || "",
+  };
+
+  await updateJob(env, jobId, {
+    report: updatedReport,
+    status: "reviewed", // 可以新增一個狀態表示已人工審核
+    updatedAt: new Date().toISOString(),
+  });
+
+  // Redirect back to the job detail page
+  return Response.redirect(publicUrl(env, `/jobs/${encodeURIComponent(jobId)}`), 302);
+}
+
 async function processQueuedJobs(env) {
   const list = await env.FACTCHECK_JOBS.list({ prefix: "job:", limit: 20 });
+  // 這裡可以考慮增加 limit，並透過並行處理提升吞吐量
+  const list = await env.FACTCHECK_JOBS.list({ prefix: "job:", limit: 10 });
   const queued = [];
+  
   for (const key of list.keys || []) {
+    // 如果 KV 支援 metadata，可以直接從 key.metadata 判斷 status，不用 get
     const job = await env.FACTCHECK_JOBS.get(key.name, "json");
     if (job?.status === "queued") queued.push(job);
     if (queued.length >= 2) break;
+    if (queued.length >= 5) break; // 提高每分鐘處理上限
   }
 
   for (const job of queued) {
     await runFactcheckJob(env, {
+  if (queued.length === 0) return;
+
+  // 使用 Promise.allSettled 並行執行，避免序列等待
+  await Promise.allSettled(queued.map(job => 
+    runFactcheckJob(env, {
       jobId: job.id,
       channel: job.channel,
       threadTs: job.threadTs
     });
   }
+    })
+  ));
 }
 
 async function renderJobsPage(env, url) {
@@ -135,6 +188,9 @@ function normalizeJobForOutput(job) {
 async function runFactcheckJob(env, { jobId, channel, threadTs }) {
   try {
     await updateJob(env, jobId, { status: "collecting_slack_context" });
+    // 合併狀態更新，只在關鍵節點更新 KV
+    await updateJob(env, jobId, { status: "processing" });
+    
     const thread = await fetchSlackThread(env, channel, threadTs);
     const claimPackage = buildClaimPackage(thread);
 
@@ -150,8 +206,10 @@ async function runFactcheckJob(env, { jobId, channel, threadTs }) {
     const result = {
       status: "done",
       finishedAt: new Date().toISOString(),
+      // 將中間產物一併存入，減少 updateJob 呼叫次數
       claimPackage,
       searchPlan,
+      finishedAt: new Date().toISOString(),
       evidence,
       report
     };
@@ -311,6 +369,7 @@ async function generateReport(env, claimPackage, evidence) {
     "11. 查證解釋區塊的小節應依題材自然命名，例如「網傳影片的原始來源為何？」、「傳言流傳脈絡為何？」、「實際狀況為何？」、「結論」。",
     "12. 查證解釋區塊內的段落必須使用 <br /><br /> 分隔；可用（一）（二）（三）呈現查證步驟；重要查核句可用 <b><span style=\"color: red;\">重點文字</span></b> 標示。",
     "13. 不要只寫摘要式結論；查證解釋至少要清楚交代：原始來源或可追溯線索、流傳脈絡或主張形成方式、證據如何支持/反駁、結論。",
+    "14. 不得插入任何 <img> 標籤，所有原本放置圖片、首圖或影片的位置，請統一改為使用 <br />[查核圖片]<br /> 取代。",
     "只輸出 JSON，不要 markdown。",
     "JSON schema:",
     '{"title":"","article_html":"","tags":[""],"permalink":"","search_description":"","showcha_assets":{"cover":{"tool_url":"","headline":"","verdict":"","source_image_notes":""},"grid":{"tool_url":"","screenshots":[{"label":"","source_url":"","note":""}]}}}',
@@ -344,16 +403,16 @@ function bloggerTemplate() {
 <br /><br />
 （3）第三點說明傳言流傳脈絡、誤導之處或結論。</div><br />
 <div class="intro_words">網傳「謠言內容」的影片訊息，前言描述。</div>
-「首圖」
+<br />[查核圖片]<br />
 <!--more-->
 <h2>大標的謠言</h2>
 <br />原始謠傳版本：<br />
 <blockquote class="tr_bq">謠言本體</blockquote>
 <br />主要流傳這段影片<br /><br />
-影片
+<br />[查核圖片]<br />
 <br /><br />
 並在社群平台流傳：
-<br />圖片<br />
+<br />[查核圖片]<br />
 查證解釋：<br />
 <blockquote class="yestrue">
 <h3 style="text-align: left;">網傳內容的原始來源為何？</h3><br />（一）第一段查證內容，說明反搜、關鍵字搜尋或原始來源比對結果。<br /><br />（二）第二段查證內容，引用 evidence 中的資料來源連結，說明可驗證的事實。<br /><br /><h3 style="text-align: left;">傳言流傳脈絡為何？</h3><br />（一）說明傳言如何在社群平台流傳，或如何被截圖、剪輯、移花接木。<br /><br />（二）說明哪些說法缺乏證據、哪些說法可被來源支持。<br /><br /><h3 style="text-align: left;">結論</h3><br />用一段完整文字總結查核結果、錯誤或誤導之處，以及正確脈絡。
@@ -816,6 +875,7 @@ function renderJobPage(job, url) {
         <h1>${escapeHtml(report.title || job.searchPlan?.claim || "查核任務")}</h1>
       </div>
       <a class="button" href="/jobs">返回列表</a>
+      <a class="button primary" href="/jobs/${encodeURIComponent(job.id)}/review">編輯</a>
     </header>
 
     <section class="summary-grid">
@@ -885,6 +945,55 @@ function renderJobPage(job, url) {
         <a class="button" href="/api/jobs/${encodeURIComponent(job.id)}">開啟 JSON</a>
       </div>
       <code>${escapeHtml(new URL(`/api/jobs/${encodeURIComponent(job.id)}`, url).toString())}</code>
+    </section>
+  `);
+}
+
+function renderReviewPage(job, url) {
+  const report = job.report || {};
+  const jobId = job.id;
+
+  return layout(`編輯查核任務 - ${report.title || "未命名"}`, `
+    <header class="page-head">
+      <div>
+        <p class="eyebrow">Job ${escapeHtml(jobId)}</p>
+        <h1>編輯查核任務</h1>
+      </div>
+      <a class="button" href="/jobs/${encodeURIComponent(jobId)}">返回任務</a>
+    </header>
+
+    <section class="panel">
+      <form method="POST" action="/jobs/${encodeURIComponent(jobId)}/review">
+        <div class="form-group">
+          <label for="title">標題</label>
+          <input type="text" id="title" name="title" value="${escapeAttr(report.title || "")}" required />
+        </div>
+
+        <div class="form-group">
+          <label for="permalink">永久連結</label>
+          <input type="text" id="permalink" name="permalink" value="${escapeAttr(report.permalink || "")}" />
+        </div>
+
+        <div class="form-group">
+          <label for="tags">標籤 (逗號分隔)</label>
+          <input type="text" id="tags" name="tags" value="${escapeAttr((report.tags || []).join(", "))}" />
+        </div>
+
+        <div class="form-group">
+          <label for="search_description">搜尋說明</label>
+          <textarea id="search_description" name="search_description" rows="3">${escapeHtml(report.search_description || "")}</textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="article_html">文章 HTML</label>
+          <textarea id="article_html" name="article_html" rows="20" spellcheck="false">${escapeHtml(report.article_html || "")}</textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="button primary">儲存修改</button>
+          <a href="/jobs/${encodeURIComponent(jobId)}" class="button">取消</a>
+        </div>
+      </form>
     </section>
   `);
 }
@@ -963,8 +1072,11 @@ function layout(title, body) {
     .job-row small { display: block; color: var(--muted); margin-top: 3px; }
     .status { display: inline-flex; align-items: center; justify-content: center; min-height: 28px; padding: 3px 8px; border-radius: 999px; background: #eef2f1; color: #36514d; font-size: 13px; }
     .status.done { background: #dff3e8; color: #11603d; }
+    .status.reviewed { background: #dbeafe; color: #1e40af; } /* New status color for reviewed */
     .status.failed { background: #fde2e1; color: #9f1d1d; }
     .status.queued { background: #fff1cf; color: #7a4b00; }
+    .status.processing { background: #e0f2fe; color: #0c4a6e; } /* Add processing status color */
+
     .summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
     .summary-card span { display: block; color: var(--muted); font-size: 13px; margin-bottom: 6px; }
     .summary-card strong { display: block; overflow-wrap: anywhere; }
@@ -976,6 +1088,15 @@ function layout(title, body) {
     dt { color: var(--muted); }
     dd { margin: 0; overflow-wrap: anywhere; }
     .plain-list { margin: 0; padding-left: 20px; }
+
+    /* Form styles */
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-weight: bold; margin-bottom: 6px; }
+    .form-group input[type="text"], .form-group textarea { width: 100%; padding: 9px 12px; border: 1px solid var(--line); border-radius: 6px; font: inherit; background: #fbfbfa; color: var(--ink); }
+    .form-group textarea { resize: vertical; }
+    .form-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
+
+
     .plain-list li { margin-bottom: 10px; overflow-wrap: anywhere; }
     .empty { color: var(--muted); padding: 20px 0; }
     code { overflow-wrap: anywhere; }
