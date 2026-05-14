@@ -75,20 +75,28 @@ async function handleSlackEvent(request, env, ctx) {
     return new Response(payload.challenge, { headers: { "content-type": "text/plain;charset=UTF-8" } });
   }
 
+  // 處理 Slack 重試機制：如果是重試請求則記錄並直接回覆，避免重複處理
+  const retryNum = request.headers.get("x-slack-retry-num");
+  if (retryNum) {
+    console.log(`[Slack Retry] Ignoring retry attempt #${retryNum} for event ${payload.event_id}`);
+    return json({ ok: true, message: "retry_ignored" });
+  }
+
   const verified = await verifySlackSignature(request, rawBody, env.SLACK_SIGNING_SECRET);
   if (!verified) return json({ ok: false, error: "invalid_signature" }, 401);
 
   if (payload.type !== "event_callback") return json({ ok: true });
 
   const event = payload.event || {};
-  console.log(`Processing event: ${event.type}, channel: ${event.channel}, user: ${event.user}`);
+  const eventText = event.text || "";
+  console.log(`[Slack Event] Type: ${event.type}, Channel: ${event.channel}, User: ${event.user}, Text: "${eventText}"`);
 
   if (event.bot_id || event.subtype === "bot_message") {
     return json({ ok: true });
   }
 
   if (!isFactcheckTrigger(event)) {
-    console.log(`[Trigger Ignored] Type: ${event.type}, Text: "${event.text}"`);
+    console.log(`[Trigger Ignored] Event does not match COMMAND_PATTERN or mention rules.`);
     return json({ ok: true, ignored: true });
   }
 
@@ -274,9 +282,15 @@ function isRelevantClaimMessage(message) {
 
 function isFactcheckTrigger(event) {
   const text = stripSlackMentions(event.text || "");
+  // 1. 包含關鍵字 (查核/factcheck) 則觸發
   if (COMMAND_PATTERN.test(text)) return true;
-  if (event.type !== "app_mention") return false;
-  return isMentionOnlyText(text);
+  
+  // 2. 如果是標記 (app_mention) 且文字內容為空，則觸發
+  const isMentionOnly = isMentionOnlyText(text);
+  if (event.type === "app_mention" && isMentionOnly) return true;
+
+  // 3. 如果是普通訊息但裡面包含標記語法且去除標記後為空，代表使用者在頻道中 tag 機器人
+  return isMentionOnly && (event.text || "").includes("<@");
 }
 
 function isMentionOnlyText(text) {
