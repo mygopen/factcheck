@@ -82,7 +82,10 @@ async function handleSlackEvent(request, env, ctx) {
 
   const event = payload.event || {};
   if (event.bot_id || event.subtype === "bot_message") return json({ ok: true });
-  if (!isFactcheckTrigger(event)) return json({ ok: true, ignored: true });
+  if (!isFactcheckTrigger(event)) {
+    console.log(`Event ignored. Type: ${event.type}, Text: "${event.text}"`);
+    return json({ ok: true, ignored: true });
+  }
 
   const channel = event.channel;
   const threadTs = event.thread_ts || event.ts;
@@ -98,6 +101,7 @@ async function handleSlackEvent(request, env, ctx) {
   });
 
   const slackRes = await postSlackMessage(env, channel, threadTs, `收到，開始整理查核線索。Job ID: \`${jobId}\``);
+  console.log(`Slack reply attempt for Job ${jobId}: ${slackRes.ok ? 'Success' : 'Failed (' + slackRes.error + ')'}`);
   if (!slackRes.ok) {
     console.error("Slack postMessage failed:", slackRes.error);
   }
