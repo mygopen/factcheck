@@ -81,9 +81,14 @@ async function handleSlackEvent(request, env, ctx) {
   if (payload.type !== "event_callback") return json({ ok: true });
 
   const event = payload.event || {};
-  if (event.bot_id || event.subtype === "bot_message") return json({ ok: true });
+  console.log(`Processing event: ${event.type}, channel: ${event.channel}, user: ${event.user}`);
+
+  if (event.bot_id || event.subtype === "bot_message") {
+    return json({ ok: true });
+  }
+
   if (!isFactcheckTrigger(event)) {
-    console.log(`Event ignored. Type: ${event.type}, Text: "${event.text}"`);
+    console.log(`[Trigger Ignored] Type: ${event.type}, Text: "${event.text}"`);
     return json({ ok: true, ignored: true });
   }
 
@@ -101,9 +106,12 @@ async function handleSlackEvent(request, env, ctx) {
   });
 
   const slackRes = await postSlackMessage(env, channel, threadTs, `收到，開始整理查核線索。Job ID: \`${jobId}\``);
-  console.log(`Slack reply attempt for Job ${jobId}: ${slackRes.ok ? 'Success' : 'Failed (' + slackRes.error + ')'}`);
+  
+  // 這裡非常重要，如果回覆失敗，Slack 會給原因（例如 missing_scope 或 not_in_channel）
   if (!slackRes.ok) {
-    console.error("Slack postMessage failed:", slackRes.error);
+    console.error(`[Slack Error] Job: ${jobId}, Error: ${slackRes.error}`);
+  } else {
+    console.log(`[Slack Success] Sent confirmation to ${channel}`);
   }
 
   // Keep Slack's Events API response fast. The scheduled worker processes queued jobs.
