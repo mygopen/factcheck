@@ -282,16 +282,14 @@ function isRelevantClaimMessage(message) {
 }
 
 function isFactcheckTrigger(event) {
-  const text = stripSlackMentions(event.text || "");
-  // 1. 包含關鍵字 (查核/factcheck) 則觸發
-  if (COMMAND_PATTERN.test(text)) return true;
-  
-  // 2. 如果是標記 (app_mention) 且文字內容為空，則觸發
-  const isMentionOnly = isMentionOnlyText(text);
-  if (event.type === "app_mention" && isMentionOnly) return true;
+  // 1. 只要是明確的 app_mention (在 thread 或頻道中標記 @Factcheck) 就觸發
+  if (event.type === "app_mention") return true;
 
-  // 3. 如果是普通訊息但裡面包含標記語法且去除標記後為空，代表使用者在頻道中 tag 機器人
-  return isMentionOnly && (event.text || "").includes("<@");
+  // 2. 如果是一般 message 且內容包含查核關鍵字
+  const text = stripSlackMentions(event.text || "");
+  if (COMMAND_PATTERN.test(text)) return true;
+
+  return false;
 }
 
 function isMentionOnlyText(text) {
