@@ -297,6 +297,9 @@ function isFactcheckTrigger(event) {
   if (event.type === "app_mention") return true;
 
   // 2. 如果是一般 message 且內容包含查核關鍵字
+  // Slack may emit both `message` and `app_mention` for the same mention.
+  // Let `app_mention` own mention-triggered jobs so the bot does not reply twice.
+  if (event.type === "message" && /<@[^>]+>/.test(event.text || "")) return false;
   const text = stripSlackMentions(event.text || "");
   if (COMMAND_PATTERN.test(text)) return true;
 
