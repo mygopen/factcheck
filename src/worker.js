@@ -92,9 +92,15 @@ async function handleSlackEvent(request, env, ctx) {
       return; // 退出 waitUntil，不處理重試
     }
 
-    const verified = await verifySlackSignature(request, rawBody, env.SLACK_SIGNING_SECRET);
+    const eventId = payload.event_id || "unknown";
+    const verified = await verifySlackSignature(
+      request.headers.get("x-slack-request-timestamp"),
+      request.headers.get("x-slack-signature"),
+      rawBody,
+      env.SLACK_SIGNING_SECRET
+    );
     if (!verified) {
-      console.error(`[Slack Error] Invalid signature for event ${payload.event_id || "unknown"}`);
+      console.error(`[Slack Error] Invalid signature for event ${eventId}`);
       return; // 退出 waitUntil，不處理無效簽名
     }
 
@@ -103,15 +109,15 @@ async function handleSlackEvent(request, env, ctx) {
       return; // 退出 waitUntil，不處理非事件回調
     }
 
-    console.log(`[Slack Event] ID: ${payload.event_id || "unknown"}, Type: ${event.type}, Channel: ${channel}, Text: "${eventText}"`);
+    console.log(`[Slack Event] ID: ${eventId}, Type: ${event.type}, Channel: ${channel}, Text: "${eventText}"`);
 
     if (event.bot_id || event.subtype === "bot_message") {
-      console.log(`[Trigger Ignored] Bot message for event ${payload.event_id || "unknown"}`);
+      console.log(`[Trigger Ignored] Bot message for event ${eventId}`);
       return; // 退出 waitUntil，不處理機器人自己的訊息
     }
 
     if (!isFactcheckTrigger(event)) {
-      console.log(`[Trigger Ignored] Event ${payload.event_id || "unknown"} ignored.`);
+      console.log(`[Trigger Ignored] Event ${eventId} ignored.`);
       return; // 退出 waitUntil，不處理不符合觸發條件的事件
     }
 
