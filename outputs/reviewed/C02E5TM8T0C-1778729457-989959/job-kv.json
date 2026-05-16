@@ -1,0 +1,607 @@
+{
+  "ok": true,
+  "id": "C02E5TM8T0C-1778729457-989959",
+  "status": "reviewed",
+  "channel": "C02E5TM8T0C",
+  "threadTs": "1778729457.989959",
+  "createdAt": "2026-05-16T07:49:56.310Z",
+  "updatedAt": "2026-05-16T08:05:43.008Z",
+  "finishedAt": "2026-05-16T07:52:31.223Z",
+  "claimPackage": {
+    "rootText": "<https://www.facebook.com/watch?v=2044786746166948>\n<https://www.facebook.com/ROC.politician.meme/posts/pfbid0N12Hkm8ttfepryVSeT7ywZwjNnjgR3w71ytmjbpXnhfzon7RLHpReRbXx9Le3wf3l%7C>\n<https://www.facebook.com/watch/?v=1291734543079728>\n<https://www.facebook.com/watch/?v=26791168510533841>\n\n有些鶄不相信\n啊所以你們現在是在疑美嗎？",
+    "threadText": "<https://www.facebook.com/watch?v=2044786746166948>\n<https://www.facebook.com/ROC.politician.meme/posts/pfbid0N12Hkm8ttfepryVSeT7ywZwjNnjgR3w71ytmjbpXnhfzon7RLHpReRbXx9Le3wf3l%7C>\n<https://www.facebook.com/watch/?v=1291734543079728>\n<https://www.facebook.com/watch/?v=26791168510533841>\n\n有些鶄不相信\n啊所以你們現在是在疑美嗎？\n\n川普的原話是吹捧自己是一個合適的總統\n\n<https://www.youtube.com/watch?v=Bt96Q8kurVY>\n*獨家！川普：台灣選對總統就可以避免戰爭*\n\n\n\n\n\n\n\n<https://www.youtube.com/watch?v=t_EA2nOvi3A>\n\n<https://www.rev.com/transcripts/white-house-maternal-healthcare-event>\n\n<https://edition.cnn.com/2016/08/01/politics/donald-trump-election-2016-rigged>\n\n<https://www.yahoo.com/news/president-trump-warns-2020-most-214718347.html>",
+    "urls": [
+      "https://www.facebook.com/watch?v=2044786746166948",
+      "https://www.facebook.com/ROC.politician.meme/posts/pfbid0N12Hkm8ttfepryVSeT7ywZwjNnjgR3w71ytmjbpXnhfzon7RLHpReRbXx9Le3wf3l%7C",
+      "https://www.facebook.com/watch/?v=1291734543079728",
+      "https://www.facebook.com/watch/?v=26791168510533841",
+      "https://www.youtube.com/watch?v=Bt96Q8kurVY",
+      "https://www.youtube.com/watch?v=t_EA2nOvi3A",
+      "https://www.rev.com/transcripts/white-house-maternal-healthcare-event",
+      "https://edition.cnn.com/2016/08/01/politics/donald-trump-election-2016-rigged",
+      "https://www.yahoo.com/news/president-trump-warns-2020-most-214718347.html"
+    ],
+    "files": [
+      {
+        "id": "F0B3JM6CPKM",
+        "name": "image.png",
+        "title": "image.png",
+        "mimetype": "image/png",
+        "filetype": "png",
+        "urlPrivate": "https://files.slack.com/files-pri/TBKDG0Z27-F0B3JM6CPKM/image.png",
+        "thumb": "https://files.slack.com/files-tmb/TBKDG0Z27-F0B3JM6CPKM-1d977b8824/image_360.png"
+      },
+      {
+        "id": "F0B4KB8LQHE",
+        "name": "image.png",
+        "title": "image.png",
+        "mimetype": "image/png",
+        "filetype": "png",
+        "urlPrivate": "https://files.slack.com/files-pri/TBKDG0Z27-F0B4KB8LQHE/image.png",
+        "thumb": "https://files.slack.com/files-tmb/TBKDG0Z27-F0B4KB8LQHE-c974aee9d7/image_360.png"
+      },
+      {
+        "id": "F0B3P0VV4UE",
+        "name": "image.png",
+        "title": "image.png",
+        "mimetype": "image/png",
+        "filetype": "png",
+        "urlPrivate": "https://files.slack.com/files-pri/TBKDG0Z27-F0B3P0VV4UE/image.png",
+        "thumb": "https://files.slack.com/files-tmb/TBKDG0Z27-F0B3P0VV4UE-e73ff79d14/image_360.png"
+      },
+      {
+        "id": "F0B3T282W3B",
+        "name": "image.png",
+        "title": "image.png",
+        "mimetype": "image/png",
+        "filetype": "png",
+        "urlPrivate": "https://files.slack.com/files-pri/TBKDG0Z27-F0B3T282W3B/image.png",
+        "thumb": "https://files.slack.com/files-tmb/TBKDG0Z27-F0B3T282W3B-aed5b9ba4d/image_360.png"
+      },
+      {
+        "id": "F0B3T8LA2G1",
+        "name": "a727e145e0531f1e73d787ce02d65f9ae9de4ace.mp4",
+        "title": "a727e145e0531f1e73d787ce02d65f9ae9de4ace.mp4",
+        "mimetype": "video/mp4",
+        "filetype": "mp4",
+        "urlPrivate": "https://files.slack.com/files-tmb/TBKDG0Z27-F0B3T8LA2G1-247c233e4b/a727e145e0531f1e73d787ce02d65f9ae9de4ace.mp4"
+      },
+      {
+        "id": "F0B41QUBYH2",
+        "name": "IMG_20260515_061451_425.jpg",
+        "title": "IMG_20260515_061451_425.jpg",
+        "mimetype": "image/jpeg",
+        "filetype": "jpg",
+        "urlPrivate": "https://files.slack.com/files-pri/TBKDG0Z27-F0B41QUBYH2/img_20260515_061451_425.jpg",
+        "thumb": "https://files.slack.com/files-tmb/TBKDG0Z27-F0B41QUBYH2-8386400a75/img_20260515_061451_425_1024.jpg"
+      }
+    ],
+    "slackMessages": [
+      {
+        "user": "U02EPAHMUSC",
+        "ts": "1778729457.989959",
+        "text": "<https://www.facebook.com/watch?v=2044786746166948>\n<https://www.facebook.com/ROC.politician.meme/posts/pfbid0N12Hkm8ttfepryVSeT7ywZwjNnjgR3w71ytmjbpXnhfzon7RLHpReRbXx9Le3wf3l%7C>\n<https://www.facebook.com/watch/?v=1291734543079728>\n<https://www.facebook.com/watch/?v=26791168510533841>\n\n有些鶄不相信\n啊所以你們現在是在疑美嗎？",
+        "files": [
+          {
+            "id": "F0B3JM6CPKM",
+            "name": "image.png",
+            "title": "image.png",
+            "mimetype": "image/png",
+            "filetype": "png",
+            "urlPrivate": "https://files.slack.com/files-pri/TBKDG0Z27-F0B3JM6CPKM/image.png",
+            "thumb": "https://files.slack.com/files-tmb/TBKDG0Z27-F0B3JM6CPKM-1d977b8824/image_360.png"
+          },
+          {
+            "id": "F0B4KB8LQHE",
+            "name": "image.png",
+            "title": "image.png",
+            "mimetype": "image/png",
+            "filetype": "png",
+            "urlPrivate": "https://files.slack.com/files-pri/TBKDG0Z27-F0B4KB8LQHE/image.png",
+            "thumb": "https://files.slack.com/files-tmb/TBKDG0Z27-F0B4KB8LQHE-c974aee9d7/image_360.png"
+          }
+        ]
+      },
+      {
+        "user": "U02EPAHMUSC",
+        "ts": "1778729589.069499",
+        "text": "川普的原話是吹捧自己是一個合適的總統",
+        "files": [
+          {
+            "id": "F0B3P0VV4UE",
+            "name": "image.png",
+            "title": "image.png",
+            "mimetype": "image/png",
+            "filetype": "png",
+            "urlPrivate": "https://files.slack.com/files-pri/TBKDG0Z27-F0B3P0VV4UE/image.png",
+            "thumb": "https://files.slack.com/files-tmb/TBKDG0Z27-F0B3P0VV4UE-e73ff79d14/image_360.png"
+          }
+        ]
+      },
+      {
+        "user": "U02EPAHMUSC",
+        "ts": "1778730263.484339",
+        "text": "<https://www.youtube.com/watch?v=Bt96Q8kurVY>\n*獨家！川普：台灣選對總統就可以避免戰爭*",
+        "files": []
+      },
+      {
+        "user": "U02EPAHMUSC",
+        "ts": "1778731546.446359",
+        "text": "",
+        "files": [
+          {
+            "id": "F0B3T282W3B",
+            "name": "image.png",
+            "title": "image.png",
+            "mimetype": "image/png",
+            "filetype": "png",
+            "urlPrivate": "https://files.slack.com/files-pri/TBKDG0Z27-F0B3T282W3B/image.png",
+            "thumb": "https://files.slack.com/files-tmb/TBKDG0Z27-F0B3T282W3B-aed5b9ba4d/image_360.png"
+          }
+        ]
+      },
+      {
+        "user": "U02EPAHMUSC",
+        "ts": "1778734589.695879",
+        "text": "",
+        "files": [
+          {
+            "id": "F0B3T8LA2G1",
+            "name": "a727e145e0531f1e73d787ce02d65f9ae9de4ace.mp4",
+            "title": "a727e145e0531f1e73d787ce02d65f9ae9de4ace.mp4",
+            "mimetype": "video/mp4",
+            "filetype": "mp4",
+            "urlPrivate": "https://files.slack.com/files-tmb/TBKDG0Z27-F0B3T8LA2G1-247c233e4b/a727e145e0531f1e73d787ce02d65f9ae9de4ace.mp4"
+          }
+        ]
+      },
+      {
+        "user": "UBJRU065N",
+        "ts": "1778796967.452619",
+        "text": "",
+        "files": [
+          {
+            "id": "F0B41QUBYH2",
+            "name": "IMG_20260515_061451_425.jpg",
+            "title": "IMG_20260515_061451_425.jpg",
+            "mimetype": "image/jpeg",
+            "filetype": "jpg",
+            "urlPrivate": "https://files.slack.com/files-pri/TBKDG0Z27-F0B41QUBYH2/img_20260515_061451_425.jpg",
+            "thumb": "https://files.slack.com/files-tmb/TBKDG0Z27-F0B41QUBYH2-8386400a75/img_20260515_061451_425_1024.jpg"
+          }
+        ]
+      },
+      {
+        "user": "UBJRU065N",
+        "ts": "1778917730.004459",
+        "text": "<https://www.youtube.com/watch?v=t_EA2nOvi3A>",
+        "files": []
+      },
+      {
+        "user": "UBJRU065N",
+        "ts": "1778917733.829679",
+        "text": "<https://www.rev.com/transcripts/white-house-maternal-healthcare-event>",
+        "files": []
+      },
+      {
+        "user": "UBJRU065N",
+        "ts": "1778917744.902599",
+        "text": "<https://edition.cnn.com/2016/08/01/politics/donald-trump-election-2016-rigged>",
+        "files": []
+      },
+      {
+        "user": "UBJRU065N",
+        "ts": "1778917756.932509",
+        "text": "<https://www.yahoo.com/news/president-trump-warns-2020-most-214718347.html>",
+        "files": []
+      }
+    ]
+  },
+  "searchPlan": {
+    "claim": "川普曾公開表示『台灣選對總統就可以避免戰爭』，且其原話僅是在吹捧自己是一個合適的總統。",
+    "rumor_text": "川普：台灣選對總統就可以避免戰爭",
+    "keywords": [
+      "川普",
+      "台灣",
+      "總統",
+      "戰爭",
+      "Donald Trump",
+      "Taiwan",
+      "war"
+    ],
+    "queries": [
+      "Trump Taiwan election avoid war quote",
+      "川普 台灣 選對總統 避免戰爭",
+      "Donald Trump interview Taiwan war comments",
+      "川普 台灣 戰爭 訪談"
+    ],
+    "entities": [
+      "川普",
+      "台灣"
+    ],
+    "media_to_verify": [
+      "https://www.youtube.com/watch?v=Bt96Q8kurVY",
+      "https://www.youtube.com/watch?v=t_EA2nOvi3A"
+    ],
+    "risk_notes": "需釐清川普在特定訪談中關於台灣與戰爭的完整上下文，確認其言論是否被斷章取義或過度詮釋。同時需注意社群媒體上流傳的影片是否經過剪輯或翻譯誤差。"
+  },
+  "evidence": {
+    "mode": "gemini_google_search_grounding",
+    "note": "Evidence sources were extracted from Gemini groundingMetadata.groundingChunks.",
+    "queries": [
+      "Trump Taiwan election avoid war quote",
+      "川普 台灣 選對總統 避免戰爭",
+      "Donald Trump interview Taiwan war comments"
+    ],
+    "items": [
+      {
+        "title": "yimedia.com.tw",
+        "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHgpdpst4Ww2grsiZq9SvwTtZIriZ0ttndQAk_afdN7tJiwPhao9i8ZIyufmo47QxZ21f2v7cUBgt5jY4fZhZ4i8rR3ugsTi09eBMn81-urT8BIzFTyDM59LZZTfv4WmArOoCJFVw==",
+        "snippet": ""
+      },
+      {
+        "title": "chinatimes.com",
+        "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHlMUScBmz3_-nXmtpEbH6GAJUZtsbeYm9EkQn-PeBy99B_xtfNvAwD81GNQ6h-Rsq8swKNI5XwGM_u5-392RELPfpc_7OPDr0ZtjWv9QShn3b-Vw9qstTC4hur1Saq6lAKyIhojX3gAAIhJlKPMuvzhzBxPBpkYRc=",
+        "snippet": ""
+      },
+      {
+        "title": "pttweb.cc",
+        "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEBdGbiGrZ_1BsdeFb3S5f0-dZ1HGNWVu3JnbYWr9lD15H8vRhcR_VgPuvJrjnbyrNxmaE9eSYwDJkKKTCm7kA-VzqG-jratc73v5PhCOdLcWISmpe38GoNu52psa_VOGZloa0T_Pti8rKTSddQCDIQdA==",
+        "snippet": ""
+      },
+      {
+        "title": "eatnews.com",
+        "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHewBEizhRgRkAZj3mEQ5_anotNYDzTa_NzmMVGGWrnx_03Z6cb4ck9nRIeJLCOf5XGaunPP9T4572obGJte7Fcq3yIjSZeNmyboQ2bX1qhYxGrKX74zwJWjZvLoGFbfcSfi5mF",
+        "snippet": ""
+      },
+      {
+        "title": "ebc.net.tw",
+        "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGmBkQxzIUA9jLcI4bRifre856F1P37vbUIND7LDCi7ZM5y9IWOeZ_mEgX-qQJ5kV14qPkkv2szegLGFh537yE2u4wesAnknUHtnAZHjLsaSF4u1vD-tEEyCTrKbQnfS_w7fHFk",
+        "snippet": ""
+      },
+      {
+        "title": "storm.mg",
+        "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGDAvlRUXxmtc11b0qK6fFE2NCSSMmdehHRYOIEgvxRdPsTY9q1eTNMEYCVkqoyauE8u7FvUp6M4rYyjzq6_REEDBOmyGqH3ctif_IP80r2Gb9LKO7v9zE0QCNvuT8kQvk=",
+        "snippet": ""
+      },
+      {
+        "title": "agenzianova.com",
+        "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQG0u-RwLyqsD6f9TjGQtIyi7C6uCab9n15p7CKNme05mtFYJqlJ_WTR01Qjb25t7OBnODwAZ2LwHywo6bSVD6fbmnIGrpUWV8rb1y7mbihTHJfiWgD26G8wFeCZFbjbPwOohRDfDpl4OmlGBksZDhy_ZTrefJN6m5epDPFODZ7PHd26PlS6_sVFbCd40MqjRdtXeyZ0HgoD278B5dyenoS3-S8=",
+        "snippet": ""
+      },
+      {
+        "title": "newsweek.com",
+        "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHt2coWRalz13BuaErDbhq2WVqyo54TMW9VdSq-T5R2my4KPMfjSdH2bdZBvQLiRihV4s5PtE0lddd5C_X4Ig5e6--jE0WSvV-PqMriR2xiG-Je1RYcAn_dv4bVu9eARQ6k2EmYNYiUAanOUFljZJk0L0kWTNPn0qLnLS_H2CVgxg==",
+        "snippet": ""
+      },
+      {
+        "title": "theguardian.com",
+        "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFrSUHlgFNUsTslc2VnreMDJVpNeOkgYNHMRJsncqSP03CmVxhDFUkODYixTBlb4MJmfISB6jaSi0wgD62FsR3IjsLi3IGgugXfcWs7bSyHmdnaqX2yT_Lx6wJjDaAMW1San79B1BYke9ifoNwpovBFLiDV5mJPFdkI_GpZur8nxsblPPMriVepugqfSjzp9ZUQeENmWTAhW1TsgcFFhX1yHbvzJNaoPlJjrSYAeA==",
+        "snippet": ""
+      },
+      {
+        "title": "pbs.org",
+        "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGwoBQxrlYiDp7V-budJo1z1DDHxiGYh29dJBs-ZGP7leePPVksaL8DFkkI-qx4W9ipq0pJTDnP5ss5BBSOxU4eHNzIsxkfRLm1WC7hXho3qAATD1hZhsoFPooBKiQKD7QSauKXNf9UjrktM2E6Ukwgh6dOJdDmUg7GEVLGT6N2g8qtBaWWM-HB1lmhShnCC4fFPbTphsU96xc_iFGraXCI_y4DIBOQcDu4yNRu",
+        "snippet": ""
+      },
+      {
+        "title": "youtube.com",
+        "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGR78GYmwXKGZJJRzrnn_J-pYGnwuo5hIwKwUl34Znsmq1P7nCFkU5lTpp7IwUOqQdnR8v3td3lhkhbRM_FAPoBiSlE3GKpgoOnEL7wCmxs9dMHxMA90BAK34fRQyECJ3wkiRuhJmk=",
+        "snippet": ""
+      },
+      {
+        "title": "udn.com",
+        "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHPvYKugf1eh9S8C_nu6q18JuolxflUhC1fh92t7vZIyoaujlzlU61w9vAPL7e2XSST3wID0_dji3Ko8jUeD44xsZGPU3zV7pG4vZeVxmrj90nQ09UIZxraIua4bmyHz999ef2_",
+        "snippet": ""
+      },
+      {
+        "title": "yimedia.com.tw",
+        "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFzBPWtvP71L_e6AUCX8tIXCbUP4WDAd6G0Mesq76xhkMHrAoa3bs2eRhgglq5aTQeNcnJH19VYwBZcPwS0uws78G-eyiyaTqdtfrFc1gNIDGGEEg16t3J-gupe2b79xN2MjX3_rQ==",
+        "snippet": ""
+      },
+      {
+        "title": "chinatimes.com",
+        "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHxXuG2Azx9vF04lyNH69qESPBdcM-RMTEPtXHgd406qYvaAovRtv_Di88oUMyFhCtYfrXoB8tajRRCRla669_ca0y3A1dg3UYjXI2XwJTZOjkqjhEG50D5EFPCpOCSLw5fSzKXvjPUht7vbkRzCuT_CaW0rzFGaYQ=",
+        "snippet": ""
+      },
+      {
+        "title": "pttweb.cc",
+        "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQH8XnHeGoMosjrJAkD6ptCGEn_pCPVME4ZiDmBLepzDePfOLE0fpyaxvTMIxATHqZLsYIb8IoS12dyzQyKek9Bwhzc8uwQ7V6xRNJsloyrEN2K1AWjVE5v1yjb-5e0Bp236JIzARl81XBHwQudYKxITQg==",
+        "snippet": ""
+      },
+      {
+        "title": "ebc.net.tw",
+        "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFPf0uMAP-44lFs9-ZVhN7aujN5M-wZeNBLsae0D-Hsv3TIV6GpsV7lyn0hUYa0IZIvQH3ASGitZc3lohvZ8uKoyoTaBFBpYVyDbIqGQrhP9L-4Hs6vrseP4RFBwqfjBpK6pS6E",
+        "snippet": ""
+      },
+      {
+        "title": "nextapple.com",
+        "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQH_YrnZO2n38R0u8fank1MWA3FGXKhAdOKIifmXduB07op9Fh57lIDGkRTggbLQJQ24i5pBGse0CCtJIItslrK6JuMJm013XXpORUjsMcSE3Sk-y2P42Hl_BMy17UREUigMbtkyYbIMdO7Sw64L2W7JnUItbGTo-TG30vh6977VkHJp9M666S42Fznez90=",
+        "snippet": ""
+      },
+      {
+        "title": "storm.mg",
+        "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQH1sgyRp-4DgC2Wx39zW6JfNXFg97yJUxxNA42gGivp4ijF_87Y2--YE5NT5JK7Ff7l18DoDGFhRNoEsSE5w9uj5U8_YSE-Evj0jGgV0ZCIP8cZLjNOW3dD-KhBiNnaObs=",
+        "snippet": ""
+      },
+      {
+        "title": "udn.com",
+        "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHuYwQ4rnXXBhu3b9_gfnPVNMRa-lnB61vRBqvxH_MvD9FzxGxD0Fq4nQFHKo2Jz6XT0cFcfZULW4OstcWAgiZFKDjtGosrA2wAVjQO4xhoH3jb3qCOaz4PVdK-uOtnxgpyFSj1",
+        "snippet": ""
+      },
+      {
+        "title": "yimedia.com.tw",
+        "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEFuxDVOlg6FtnsjbqJi_p7EzSPZ4-Il7I_ELLkOSLOnJGCtBGnwwhXmg5tatTnK_jY9Gps7fDsfCe3BYxeSuL9Eg96YW4DKxClFn7bhVkGCuelqfk3S55e4-hS1zt5je4RpJvE6g==",
+        "snippet": ""
+      },
+      {
+        "title": "chinatimes.com",
+        "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEyNio4qmXq6MPKr71XeD2Dgn1wgtGlQ3mBJhHzsEMoNGTsrb1KjTpJ_ZDg8BzmEkZHGyo9ZvmP6XJgGidojDexA5N0X3zQvEmN0LNbEtU-WjOmriLMRw5Gl7LUuYUNVyXhYOM6bcN4gabuV_LSq1vvaLV9oRpcVGk=",
+        "snippet": ""
+      },
+      {
+        "title": "pttweb.cc",
+        "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHGyAQiaX9bL_lrPI2boG3pHDxVLsYtVnA1XmDF7fAl7KFy930YjPzmL7UkbNAhiTnwbrTO8phfV9xpHJ-KZeXVNYbkI967xTOScbL7Rzuc7YkQ9pGli-eCPFIGE4oljqntuxtn_H1eagWqv_DSBj0elA==",
+        "snippet": ""
+      },
+      {
+        "title": "eatnews.com",
+        "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHpLG1w8qqvGK3l31YtaEt7ALccuh8gkYIBdPu_9HXFD7bVP96xVqwi4BHdzNrVcb1YIa77fXkfqmTWxCdDAPpFUMqAUocizlxIaBiKdtUFMaKxFdMJsasGNQn_emEfDrSgw2hL",
+        "snippet": ""
+      },
+      {
+        "title": "ebc.net.tw",
+        "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGzUb5yXbntKI-L-ZvqW1Wn1EmG4TvB6J5k0hevAmzXeFP1X6xvbkjCIK3WA_ASVIdIM7MLkP1TTcSP93cu8Cw-R5-ZSzFPhU8_-ZKFcFg2wohUuLLvRKRd8ZV2GznJ4s6YnwHu",
+        "snippet": ""
+      },
+      {
+        "title": "pbs.org",
+        "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQH9Xp4kfFKJxyP_b1Q8hi2HemFvF9pRTIpMX0MEebW6mRze958j4bu61P_hRcfPKxeMuOt3ExddZwJHa0NCQB19ThArZYpyI7_r8NBmbTZE5I17g87JFabb-fR-i8nB3wJTtSBbkdwgUOSKrOlG1Zu9JsS7yxvCZlu6MxmRFQX1e28L_Tx_D4qDqHCt-C8ctIWbghgv9FrhzNSEGZZ7CR6J9SjCgwXFw5AUx12q",
+        "snippet": ""
+      },
+      {
+        "title": "nextapple.com",
+        "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGBzUFgB8FD-Gr60mL5zDcuwFhg73LJmgO1upH1JvD7evj2GiHuz6d15bZr9IgUrmyI8JeWeBsFEmlx4VyHy1HOQ74dXeURpZG7UI7rkQvcZuykeUHH6uY9tlcMb8dBNvplJbeqQ99qxUcjtdqeSXImqNOjHi4noR4cRW4-IOYu388on1AhQuUujMq311I=",
+        "snippet": ""
+      },
+      {
+        "title": "storm.mg",
+        "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGzYNd0JkiZ0aBZHEKXramdkcYkxSKcgLx8PWonLOjUbZwwy0ktPEfwPOAHoNjMF5pO4cPWULCQXXdbjjsaffDLBYH0DJcMVf3hVQ-qaR4d812s-SkTDIHGmAg67fAnXUI=",
+        "snippet": ""
+      },
+      {
+        "title": "udn.com",
+        "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHEc2wG3L5x0CnUcdu-l9KLtxlb0jqSOvTsKAuJKUz09wm0JhyOq5WsUa_PteF38-k4m-fNgzB5qh6NNGUu1e_-9eQ3Q-ghg2cknIjYimIqv_Ytd7-NWeijg4PLvAq0GdjNMOTM",
+        "snippet": ""
+      },
+      {
+        "title": "cbsnews.com",
+        "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHhC9kdoEDmSETpcq3a-SyZ1hRlHxIufL6m_0xvnWmfkFYJRywfeoS3RFwK5aMHzLfAohMYYBTg1dxYYRwbfX8E3DNCwZek6LfDbcOdVaWFlrek1xzXbXgbb2Vy_3YFCpE6QlefesvH9sdpOJp314jj9YElISVUn0Y4U_GTDKlt7kl4fQ==",
+        "snippet": ""
+      }
+    ],
+    "results": [
+      {
+        "query": "Trump Taiwan election avoid war quote",
+        "summary": "根據多個來源，唐納·川普（Donald Trump）確實曾就台灣的總統選舉與戰爭的可能性發表過相關言論，但其原意和上下文需要仔細釐清。\n\n**支持主張的資訊：**\n\n*   **「台灣如果選對了總統，就不會發生戰爭。」** 媒體報導指出，川普在接受美國記者訪問時曾說出類似的言論，並將台灣局勢與烏克蘭戰爭類比，認為若有「合適的總統」，衝突就不會發生。\n*   **言論的上下文與川普的立場：** 這些言論出現在川普與中國國家主席習近平會面前後，他似乎藉此表達對台灣領導人路線的擔憂，並暗示現任領導人可能引發衝突。有報導認為，川普的言論是在警告台灣不要因為認為有美國撐腰就走向獨立，並表示不希望美國為了9500英里外的戰爭而介入。\n\n**反駁或釐清主張的資訊：**\n\n*   **原意被斷章取義的質疑：** 有報導指出，川普的言論被部分媒體斷章取義或過度解讀。例如，有說法稱川普的原意是「美國有合適的總統，台灣跟烏克蘭就不會有衝突」，而非直接點名台灣的總統。\n*   **吹捧自己是合適總統的說法：** 雖然有報導指出川普的言論與其個人政治立場有關，但直接證明其原意僅是「吹捧自己是一個合適的總統」的證據較少。然而，他確實曾表示「我和習主席的關係非常好，他知道我不希望那種情況發生」，並將台灣局勢與烏克蘭戰爭類比，暗示若選舉被操弄，戰爭就不會發生。\n*   **對台政策的模糊性：** 川普在不同場合對台海局勢和美國對台政策的表述，有時顯得模糊或保留。他曾表示對台軍售案「可能批准，也可能不批准」，並質疑台灣為何不為自身防禦付費，將美台關係比作「保險政策」。這顯示他的立場並非全然支持台灣，而是更側重於美國的利益和避免戰爭。\n*   **官方立場的澄清：** 台灣官方曾澄清，川普的言論被斷章取義、刻意誤導。同時，也有國安官員指出，川普傳遞的訊號是美國對台政策不變、維持現狀是關鍵，以及軍售只跟台灣談。\n\n總體而言，川普確實說過類似「台灣選對總統就能避免戰爭」的話，但其言論的完整上下文、真實意圖以及是否僅為吹捧自己，仍有待進一步釐清。他的表述似乎更側重於避免美國捲入戰爭，並對台灣的獨立傾向表達了擔憂。",
+        "webSearchQueries": [
+          "Trump Taiwan election avoid war quote",
+          "川普 台灣 選對總統 避免戰爭",
+          "Donald Trump interview Taiwan war comments",
+          "川普 台灣 戰爭 訪談"
+        ],
+        "items": [
+          {
+            "title": "yimedia.com.tw",
+            "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHgpdpst4Ww2grsiZq9SvwTtZIriZ0ttndQAk_afdN7tJiwPhao9i8ZIyufmo47QxZ21f2v7cUBgt5jY4fZhZ4i8rR3ugsTi09eBMn81-urT8BIzFTyDM59LZZTfv4WmArOoCJFVw==",
+            "snippet": ""
+          },
+          {
+            "title": "chinatimes.com",
+            "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHlMUScBmz3_-nXmtpEbH6GAJUZtsbeYm9EkQn-PeBy99B_xtfNvAwD81GNQ6h-Rsq8swKNI5XwGM_u5-392RELPfpc_7OPDr0ZtjWv9QShn3b-Vw9qstTC4hur1Saq6lAKyIhojX3gAAIhJlKPMuvzhzBxPBpkYRc=",
+            "snippet": ""
+          },
+          {
+            "title": "pttweb.cc",
+            "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEBdGbiGrZ_1BsdeFb3S5f0-dZ1HGNWVu3JnbYWr9lD15H8vRhcR_VgPuvJrjnbyrNxmaE9eSYwDJkKKTCm7kA-VzqG-jratc73v5PhCOdLcWISmpe38GoNu52psa_VOGZloa0T_Pti8rKTSddQCDIQdA==",
+            "snippet": ""
+          },
+          {
+            "title": "eatnews.com",
+            "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHewBEizhRgRkAZj3mEQ5_anotNYDzTa_NzmMVGGWrnx_03Z6cb4ck9nRIeJLCOf5XGaunPP9T4572obGJte7Fcq3yIjSZeNmyboQ2bX1qhYxGrKX74zwJWjZvLoGFbfcSfi5mF",
+            "snippet": ""
+          },
+          {
+            "title": "ebc.net.tw",
+            "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGmBkQxzIUA9jLcI4bRifre856F1P37vbUIND7LDCi7ZM5y9IWOeZ_mEgX-qQJ5kV14qPkkv2szegLGFh537yE2u4wesAnknUHtnAZHjLsaSF4u1vD-tEEyCTrKbQnfS_w7fHFk",
+            "snippet": ""
+          },
+          {
+            "title": "storm.mg",
+            "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGDAvlRUXxmtc11b0qK6fFE2NCSSMmdehHRYOIEgvxRdPsTY9q1eTNMEYCVkqoyauE8u7FvUp6M4rYyjzq6_REEDBOmyGqH3ctif_IP80r2Gb9LKO7v9zE0QCNvuT8kQvk=",
+            "snippet": ""
+          },
+          {
+            "title": "agenzianova.com",
+            "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQG0u-RwLyqsD6f9TjGQtIyi7C6uCab9n15p7CKNme05mtFYJqlJ_WTR01Qjb25t7OBnODwAZ2LwHywo6bSVD6fbmnIGrpUWV8rb1y7mbihTHJfiWgD26G8wFeCZFbjbPwOohRDfDpl4OmlGBksZDhy_ZTrefJN6m5epDPFODZ7PHd26PlS6_sVFbCd40MqjRdtXeyZ0HgoD278B5dyenoS3-S8=",
+            "snippet": ""
+          },
+          {
+            "title": "newsweek.com",
+            "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHt2coWRalz13BuaErDbhq2WVqyo54TMW9VdSq-T5R2my4KPMfjSdH2bdZBvQLiRihV4s5PtE0lddd5C_X4Ig5e6--jE0WSvV-PqMriR2xiG-Je1RYcAn_dv4bVu9eARQ6k2EmYNYiUAanOUFljZJk0L0kWTNPn0qLnLS_H2CVgxg==",
+            "snippet": ""
+          },
+          {
+            "title": "theguardian.com",
+            "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFrSUHlgFNUsTslc2VnreMDJVpNeOkgYNHMRJsncqSP03CmVxhDFUkODYixTBlb4MJmfISB6jaSi0wgD62FsR3IjsLi3IGgugXfcWs7bSyHmdnaqX2yT_Lx6wJjDaAMW1San79B1BYke9ifoNwpovBFLiDV5mJPFdkI_GpZur8nxsblPPMriVepugqfSjzp9ZUQeENmWTAhW1TsgcFFhX1yHbvzJNaoPlJjrSYAeA==",
+            "snippet": ""
+          },
+          {
+            "title": "pbs.org",
+            "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGwoBQxrlYiDp7V-budJo1z1DDHxiGYh29dJBs-ZGP7leePPVksaL8DFkkI-qx4W9ipq0pJTDnP5ss5BBSOxU4eHNzIsxkfRLm1WC7hXho3qAATD1hZhsoFPooBKiQKD7QSauKXNf9UjrktM2E6Ukwgh6dOJdDmUg7GEVLGT6N2g8qtBaWWM-HB1lmhShnCC4fFPbTphsU96xc_iFGraXCI_y4DIBOQcDu4yNRu",
+            "snippet": ""
+          },
+          {
+            "title": "youtube.com",
+            "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGR78GYmwXKGZJJRzrnn_J-pYGnwuo5hIwKwUl34Znsmq1P7nCFkU5lTpp7IwUOqQdnR8v3td3lhkhbRM_FAPoBiSlE3GKpgoOnEL7wCmxs9dMHxMA90BAK34fRQyECJ3wkiRuhJmk=",
+            "snippet": ""
+          },
+          {
+            "title": "udn.com",
+            "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHPvYKugf1eh9S8C_nu6q18JuolxflUhC1fh92t7vZIyoaujlzlU61w9vAPL7e2XSST3wID0_dji3Ko8jUeD44xsZGPU3zV7pG4vZeVxmrj90nQ09UIZxraIua4bmyHz999ef2_",
+            "snippet": ""
+          }
+        ]
+      },
+      {
+        "query": "川普 台灣 選對總統 避免戰爭",
+        "summary": "根據搜尋結果，關於「川普曾公開表示『台灣選對總統就可以避免戰爭』，且其原話僅是在吹捧自己是一個合適的總統」的主張，有以下資訊支持與反駁：\n\n**支持主張的資訊：**\n\n*   **川普確實說過類似言論：** 多個來源指出，川普在接受採訪時曾表示，如果台灣選對了總統，戰爭就不會發生。例如，他曾說：「台灣，我認為可以拿來做一點類比。如果你們有選出一個合適的總統，衝突不會發生，我認為會沒事的！」。\n*   **言論被指斷章取義或過度詮釋：** 有報導指出，川普的這番言論被部分人士（如民進黨）澄清是斷章取義或刻意誤導。也有說法認為，川普的言論是將台灣與烏克蘭的情況類比，並強調他與習近平關係良好，習近平知道他不希望發生那種情況。\n*   **川普的言論可能是在吹捧自己：** 彭文正等媒體人認為，川普的言論暗示台灣現任領導人（賴清德）不適任，並將台灣主權拱手讓給川普，將台灣視為他與習近平談判的籌碼。這與主張「其原話僅是在吹捧自己是一個合適的總統」的說法有部分契合，即川普認為自己是能避免戰爭的「合適總統」。\n\n**反駁或釐清主張的資訊：**\n\n*   **川普的言論上下文與重點：** 許多報導強調，川普的重點在於「不希望有人走向獨立」，以及「不希望美國為了保護台灣而飛越9500英里去打仗」。他認為，如果台灣維持現狀，中國可能會接受，但若台灣尋求獨立，則可能引發戰爭，而美國不願無條件介入。\n*   **川普的言論並非僅限於吹捧自己：** 雖然川普的言論可能帶有自我吹捧的成分，但其核心訊息更側重於對台灣獨立的警告以及對美國軍事介入的保留態度。他強調的是「維持現狀」是關鍵，而非僅僅是誰當總統。\n*   **川普對台灣的立場複雜：** 川普也曾表示，他對台灣的軍售案「可能會做，也可能不會做」，並對台灣的晶片產業表達了興趣，希望他們能到美國設廠。這顯示他的言論並非單純地只為吹捧自己，而是包含多重考量。\n*   **部分解讀認為川普是在警告台灣領導人：** 有些分析認為，川普的言論是在警告台灣現任領導人不要採取可能引發衝突的行動。\n\n**總結：**\n\n川普確實說過類似「台灣選對總統就可以避免戰爭」的言論，但這句話的上下文和真實意涵仍有爭議。部分說法認為這是川普在吹捧自己是能避免戰爭的「合適總統」，並將台灣領導人視為潛在的麻煩製造者。然而，更多報導指出，川普的核心訊息是警告台灣不要走向獨立，並對美國是否會無條件協防台灣持保留態度，強調維持現狀的重要性。因此，將川普的言論僅視為「吹捧自己」可能過於簡化，其言論也包含了對台海局勢的複雜考量和警告。",
+        "webSearchQueries": [
+          "川普 台灣 選對總統 避免戰爭",
+          "Donald Trump Taiwan election avoid war quote",
+          "川普 台灣 戰爭 訪談"
+        ],
+        "items": [
+          {
+            "title": "yimedia.com.tw",
+            "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFzBPWtvP71L_e6AUCX8tIXCbUP4WDAd6G0Mesq76xhkMHrAoa3bs2eRhgglq5aTQeNcnJH19VYwBZcPwS0uws78G-eyiyaTqdtfrFc1gNIDGGEEg16t3J-gupe2b79xN2MjX3_rQ==",
+            "snippet": ""
+          },
+          {
+            "title": "chinatimes.com",
+            "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHxXuG2Azx9vF04lyNH69qESPBdcM-RMTEPtXHgd406qYvaAovRtv_Di88oUMyFhCtYfrXoB8tajRRCRla669_ca0y3A1dg3UYjXI2XwJTZOjkqjhEG50D5EFPCpOCSLw5fSzKXvjPUht7vbkRzCuT_CaW0rzFGaYQ=",
+            "snippet": ""
+          },
+          {
+            "title": "pttweb.cc",
+            "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQH8XnHeGoMosjrJAkD6ptCGEn_pCPVME4ZiDmBLepzDePfOLE0fpyaxvTMIxATHqZLsYIb8IoS12dyzQyKek9Bwhzc8uwQ7V6xRNJsloyrEN2K1AWjVE5v1yjb-5e0Bp236JIzARl81XBHwQudYKxITQg==",
+            "snippet": ""
+          },
+          {
+            "title": "ebc.net.tw",
+            "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFPf0uMAP-44lFs9-ZVhN7aujN5M-wZeNBLsae0D-Hsv3TIV6GpsV7lyn0hUYa0IZIvQH3ASGitZc3lohvZ8uKoyoTaBFBpYVyDbIqGQrhP9L-4Hs6vrseP4RFBwqfjBpK6pS6E",
+            "snippet": ""
+          },
+          {
+            "title": "nextapple.com",
+            "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQH_YrnZO2n38R0u8fank1MWA3FGXKhAdOKIifmXduB07op9Fh57lIDGkRTggbLQJQ24i5pBGse0CCtJIItslrK6JuMJm013XXpORUjsMcSE3Sk-y2P42Hl_BMy17UREUigMbtkyYbIMdO7Sw64L2W7JnUItbGTo-TG30vh6977VkHJp9M666S42Fznez90=",
+            "snippet": ""
+          },
+          {
+            "title": "storm.mg",
+            "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQH1sgyRp-4DgC2Wx39zW6JfNXFg97yJUxxNA42gGivp4ijF_87Y2--YE5NT5JK7Ff7l18DoDGFhRNoEsSE5w9uj5U8_YSE-Evj0jGgV0ZCIP8cZLjNOW3dD-KhBiNnaObs=",
+            "snippet": ""
+          },
+          {
+            "title": "udn.com",
+            "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHuYwQ4rnXXBhu3b9_gfnPVNMRa-lnB61vRBqvxH_MvD9FzxGxD0Fq4nQFHKo2Jz6XT0cFcfZULW4OstcWAgiZFKDjtGosrA2wAVjQO4xhoH3jb3qCOaz4PVdK-uOtnxgpyFSj1",
+            "snippet": ""
+          }
+        ]
+      },
+      {
+        "query": "Donald Trump interview Taiwan war comments",
+        "summary": "**待查主張：** 川普曾公開表示「台灣選對總統就可以避免戰爭」，且其原話僅是在吹捧自己是一個合適的總統。\n\n**摘要：**\n\n關於川普聲稱「台灣選對總統就可以避免戰爭」的說法，有多個來源指出川普確實發表過類似言論，但其完整上下文和意圖仍有討論空間。\n\n**支持主張的資訊：**\n\n*   **川普確實說過類似的話：** 多個報導指出，川普在接受採訪時表示，如果台灣選對了總統，就不會發生戰爭。他將台灣的局勢與烏克蘭戰爭進行類比，並認為「如果你們有合適的總統，衝突不會發生，我認為會沒事的」。\n*   **對軍售的保留態度：** 川普在相關訪談中對對台軍售的態度顯得保留，表示可能會批准也可能不批准，並提到習近平希望他不要討論軍售問題。這可能被解讀為他將台灣的軍售與與中國的關係掛鉤。\n\n**反駁或釐清主張的資訊：**\n\n*   **並非僅是吹捧自己：** 雖然川普的言論被部分解讀為暗諷現任台灣總統賴清德，但也有報導指出，川普的言論重點在於「如果台灣選對了總統」，而非直接吹捧自己是「合適的總統」。他將台灣的局勢與烏克蘭戰爭進行類比，並強調「如果選舉沒有被操縱，那本來是絕對不會發生的」。\n*   **強調維持現狀：** 川普多次強調不希望看到有人走向獨立，以及不希望美國為了9500英里外的戰爭而介入。這顯示他的關切點在於避免衝突和維持現狀，而非僅僅是為了推銷自己。\n*   **對台灣地位的模糊態度：** 川普在訪談中並未明確定義台灣的地位，而是希望維持現狀。他曾表示「台灣，我有點拿它做比較」，並認為「如果你們有合適的總統，我不認為（戰爭）會發生」。\n*   **對中國的態度：** 川普也表示，他與習近平關係良好，習近平知道他不希望發生那樣的情況。他認為中國領導人知道軍事行動的後果。\n\n**總結：**\n\n川普確實說過「台灣選對總統就可以避免戰爭」的言論，但這句話的上下文更偏向於他認為台灣的領導人選擇會影響台海局勢，並將此與烏克蘭戰爭的發生原因進行類比，同時也表達了他對維持現狀和避免美國捲入戰爭的擔憂。將此言論僅解讀為「吹捧自己是一個合適的總統」可能過於簡化，且忽略了他對台灣領導人選擇和維持現狀的關切。",
+        "webSearchQueries": [
+          "Donald Trump Taiwan election avoid war quote",
+          "川普 台灣 選對總統 避免戰爭",
+          "Donald Trump interview Taiwan war comments",
+          "川普 台灣 戰爭 訪談"
+        ],
+        "items": [
+          {
+            "title": "yimedia.com.tw",
+            "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEFuxDVOlg6FtnsjbqJi_p7EzSPZ4-Il7I_ELLkOSLOnJGCtBGnwwhXmg5tatTnK_jY9Gps7fDsfCe3BYxeSuL9Eg96YW4DKxClFn7bhVkGCuelqfk3S55e4-hS1zt5je4RpJvE6g==",
+            "snippet": ""
+          },
+          {
+            "title": "chinatimes.com",
+            "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEyNio4qmXq6MPKr71XeD2Dgn1wgtGlQ3mBJhHzsEMoNGTsrb1KjTpJ_ZDg8BzmEkZHGyo9ZvmP6XJgGidojDexA5N0X3zQvEmN0LNbEtU-WjOmriLMRw5Gl7LUuYUNVyXhYOM6bcN4gabuV_LSq1vvaLV9oRpcVGk=",
+            "snippet": ""
+          },
+          {
+            "title": "pttweb.cc",
+            "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHGyAQiaX9bL_lrPI2boG3pHDxVLsYtVnA1XmDF7fAl7KFy930YjPzmL7UkbNAhiTnwbrTO8phfV9xpHJ-KZeXVNYbkI967xTOScbL7Rzuc7YkQ9pGli-eCPFIGE4oljqntuxtn_H1eagWqv_DSBj0elA==",
+            "snippet": ""
+          },
+          {
+            "title": "eatnews.com",
+            "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHpLG1w8qqvGK3l31YtaEt7ALccuh8gkYIBdPu_9HXFD7bVP96xVqwi4BHdzNrVcb1YIa77fXkfqmTWxCdDAPpFUMqAUocizlxIaBiKdtUFMaKxFdMJsasGNQn_emEfDrSgw2hL",
+            "snippet": ""
+          },
+          {
+            "title": "ebc.net.tw",
+            "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGzUb5yXbntKI-L-ZvqW1Wn1EmG4TvB6J5k0hevAmzXeFP1X6xvbkjCIK3WA_ASVIdIM7MLkP1TTcSP93cu8Cw-R5-ZSzFPhU8_-ZKFcFg2wohUuLLvRKRd8ZV2GznJ4s6YnwHu",
+            "snippet": ""
+          },
+          {
+            "title": "pbs.org",
+            "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQH9Xp4kfFKJxyP_b1Q8hi2HemFvF9pRTIpMX0MEebW6mRze958j4bu61P_hRcfPKxeMuOt3ExddZwJHa0NCQB19ThArZYpyI7_r8NBmbTZE5I17g87JFabb-fR-i8nB3wJTtSBbkdwgUOSKrOlG1Zu9JsS7yxvCZlu6MxmRFQX1e28L_Tx_D4qDqHCt-C8ctIWbghgv9FrhzNSEGZZ7CR6J9SjCgwXFw5AUx12q",
+            "snippet": ""
+          },
+          {
+            "title": "nextapple.com",
+            "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGBzUFgB8FD-Gr60mL5zDcuwFhg73LJmgO1upH1JvD7evj2GiHuz6d15bZr9IgUrmyI8JeWeBsFEmlx4VyHy1HOQ74dXeURpZG7UI7rkQvcZuykeUHH6uY9tlcMb8dBNvplJbeqQ99qxUcjtdqeSXImqNOjHi4noR4cRW4-IOYu388on1AhQuUujMq311I=",
+            "snippet": ""
+          },
+          {
+            "title": "storm.mg",
+            "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGzYNd0JkiZ0aBZHEKXramdkcYkxSKcgLx8PWonLOjUbZwwy0ktPEfwPOAHoNjMF5pO4cPWULCQXXdbjjsaffDLBYH0DJcMVf3hVQ-qaR4d812s-SkTDIHGmAg67fAnXUI=",
+            "snippet": ""
+          },
+          {
+            "title": "udn.com",
+            "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHEc2wG3L5x0CnUcdu-l9KLtxlb0jqSOvTsKAuJKUz09wm0JhyOq5WsUa_PteF38-k4m-fNgzB5qh6NNGUu1e_-9eQ3Q-ghg2cknIjYimIqv_Ytd7-NWeijg4PLvAq0GdjNMOTM",
+            "snippet": ""
+          },
+          {
+            "title": "cbsnews.com",
+            "link": "https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHhC9kdoEDmSETpcq3a-SyZ1hRlHxIufL6m_0xvnWmfkFYJRywfeoS3RFwK5aMHzLfAohMYYBTg1dxYYRwbfX8E3DNCwZek6LfDbcOdVaWFlrek1xzXbXgbb2Vy_3YFCpE6QlefesvH9sdpOJp314jj9YElISVUn0Y4U_GTDKlt7kl4fQ==",
+            "snippet": ""
+          }
+        ]
+      }
+    ]
+  },
+  "report": {
+    "title": "【誤導】川普說台灣「選對總統」就能避免戰爭？翻譯脈絡錯置！他是在談美國總統",
+    "article_html": "<div class=\"quote_style\"><h3 style=\"text-align: center;\">你可以先知道：</h3>（1）網傳影片稱川普談到台灣時說「如果你有合適的總統，戰爭就不會發生」，並被解讀成暗指台灣總統賴清德不適任；但從完整問答脈絡來看，川普是在把台海情勢與烏俄戰爭做類比。\n<br /><br />\n（2）川普前一句談的是 2020 年美國總統大選與拜登政府，他接著說台灣「也可類比」，因此句中的「you」較合理的對象是美國選民，而非台灣人民；「合適的總統」指川普自認能避免衝突的美國總統。\n<br /><br />\n（3）網傳字幕把「類比」翻成「理解那種情況」，又未交代前面談烏克蘭與美國大選的脈絡，容易讓人誤以為川普是在評論台灣選出的總統，屬於脈絡錯置的誤導說法。</div><br />\n<div class=\"intro_words\">網傳「川普暗示賴清德不適任」、「台灣選對總統就可以避免戰爭」的影片與貼文，畫面為美國總統川普在白宮活動後接受媒體提問，談到台灣是否會成為美中會談議題。經查，這段話確實出自 2026 年 5 月 13 日白宮活動，但網傳說法省略川普前面談烏克蘭戰爭與美國大選的脈絡，將「you」解讀為台灣人民，容易造成錯誤理解。</div>\n<br />[查核圖片]<br />\n<!--more-->\n<h2>川普說台灣選對總統就能避免戰爭？</h2>\n<br />原始謠傳版本：<br />\n<blockquote class=\"tr_bq\">有些鶄不相信<br />啊所以你們現在是在疑美嗎？</blockquote>\n<br />或這個版本：<br />\n<blockquote class=\"tr_bq\">川普的原話是吹捧自己是一個合適的總統。</blockquote>\n<br />另有影片標題寫成：<br />\n<blockquote class=\"tr_bq\">獨家！川普：台灣選對總統就可以避免戰爭</blockquote>\n<br />主要流傳這段影片<br /><br />\n<a href=\"https://www.youtube.com/watch?v=Bt96Q8kurVY\">YouTube - 獨家！川普：台灣選對總統就可以避免戰爭</a>\n<br /><br />\n並在 Facebook 等社群平台流傳：\n<br />[查核圖片]<br />\n查證解釋：<br />\n<blockquote class=\"yestrue\">\n<h3 style=\"text-align: left;\">網傳影片的原始來源為何？</h3><br />\n查核這類短影片說法，需先回到原始影片與逐字稿確認發言前後文。以川普發言的關鍵字、時間點與 Slack 線索中的連結比對，可找到這段內容出自 2026 年 5 月 13 日「White House Maternal Healthcare Event」活動後的媒體問答；白宮 YouTube 直播與 Rev 逐字稿皆收錄同一段對話。<br /><br />\n該段問答約在 01:05:29 開始。記者詢問川普：「台灣呢？您預期會談到台灣嗎？」川普先回答台灣議題總是會被提出，接著沒有直接評論台灣總統，而是轉向烏克蘭，稱烏俄戰爭原本不應發生，並把原因連到他一貫主張的「2020 年美國大選被操弄」、拜登上任後局勢處理不佳。<br /><br />\n換言之，台灣段落不是孤立的一句話；川普是在先談「如果當年美國不是拜登而是川普，烏俄戰爭不會發生」之後，再把台灣放進同一套說法中類比。\n<br /><br />\n<h3 style=\"text-align: left;\">網傳字幕與逐字稿差在哪裡？</h3><br />\n網傳影片的中文字幕大意寫成「台灣，我有點能理解那種情況，如果你有合適的總統，戰爭就不會發生」。但逐字稿關鍵句是「I would equate it a little bit to that」，較貼近的意思是「我覺得多少可以把台灣與前面那件事類比」，而不是「我能理解台灣那種情況」。<br /><br />\n接著川普說到「If you have the right president」，網傳說法把「you」直接讀成「台灣人民」，因此延伸成「台灣選對總統就不會有戰爭」或「暗指賴清德不適任」。但從前後文看，川普剛剛談的是美國選舉、拜登政府與自己若連任會如何處理烏克蘭，下一句「台灣也可類比」仍是在延續「美國有沒有選出對的總統」這個框架。<br /><br />\n川普後續也說，他認為「我們」會沒事、自己與習近平關係良好，並提到美國距離台灣約 9,500 英里、中國距離台灣約 67 英里，以及日本與區域國家對台灣有支持。這些語句都顯示他是在談美國政府如何處理台海議題，而非直接評論台灣選民的投票選擇。\n<br /><br />\n<h3 style=\"text-align: left;\">為何說這是脈絡錯置？</h3><br />\n（一）原始問答中，記者問的是「台灣議題是否會被提出」，不是問賴清德或台灣選舉。川普回答時也沒有點名賴清德。<br /><br />\n（二）川普把台灣與烏克蘭做類比，是先從美國總統大選、拜登政府與自己對普丁的互動談起；因此「合適的總統」在這段語境中指向美國總統，比指向台灣總統更符合上下文。<br /><br />\n（三）川普過去多次用「rigged」描述美國選舉，CNN 曾報導他 2016 年競選期間即稱擔心選舉被操弄，News 5／Yahoo 也整理他 2020 年對郵寄投票與選舉制度的說法。這有助於理解他在 2026 年這段回答中為何又回到「美國選舉被操弄」的敘事。\n<br /><br />\n<h3 style=\"text-align: left;\">結論</h3><br />\n總結來說，川普確實在談台灣時說過「如果有合適的總統，戰爭就不會發生」的相關內容；但完整脈絡是他先談烏俄戰爭與美國總統大選，再把台灣情勢類比到同一套說法。網傳內容把「you」解讀成台灣人民、把「合適的總統」解讀成台灣總統，並延伸為川普暗指賴清德不適任，屬於省略脈絡後造成的誤導。</blockquote>\n<br />資料來源：<br />\nYouTube - <a href=\"https://www.youtube.com/watch?v=t_EA2nOvi3A\">President Trump Participates in a Maternal Healthcare Event</a><br />\nRev.com - <a href=\"https://www.rev.com/transcripts/white-house-maternal-healthcare-event\">White House Maternal Healthcare Event</a><br />\nCNN - <a href=\"https://edition.cnn.com/2016/08/01/politics/donald-trump-election-2016-rigged\">Trump: ‘I’m afraid the election’s going to be rigged’</a><br />\nYahoo News - <a href=\"https://www.yahoo.com/news/president-trump-warns-2020-most-214718347.html\">President Trump warns 2020 will be most rigged election in history</a><br />\n",
+    "tags": [
+      "川普",
+      "台灣",
+      "美國總統",
+      "賴清德",
+      "謠言"
+    ],
+    "permalink": "trump-taiwan-right-president-context",
+    "search_description": "網傳川普稱台灣選對總統就能避免戰爭，並暗指賴清德不適任。查證發現，川普是在將台海情勢與烏俄戰爭、美國總統大選做類比，「you」指向美國選民的脈絡更合理，網傳說法省略上下文，容易誤導。",
+    "showcha_assets": {
+      "cover": {
+        "tool_url": "https://cover.showcha.com/",
+        "headline": "川普說台灣「選對總統」就能避免戰爭？",
+        "verdict": "誤導",
+        "source_image_notes": "建議使用網傳影片截圖、白宮 YouTube 原始影片時間點與 Rev 逐字稿截圖，呈現「you」代名詞脈絡。"
+      },
+      "grid": {
+        "tool_url": "https://grid.showcha.com/",
+        "screenshots": [
+          {
+            "label": "網傳影片與貼文",
+            "source_url": "https://www.youtube.com/watch?v=Bt96Q8kurVY",
+            "note": "呈現流傳標題「台灣選對總統就可以避免戰爭」及社群解讀。"
+          },
+          {
+            "label": "白宮原始影片",
+            "source_url": "https://www.youtube.com/watch?v=t_EA2nOvi3A",
+            "note": "對照 2026 年 5 月 13 日活動原始問答時間點。"
+          },
+          {
+            "label": "Rev 逐字稿",
+            "source_url": "https://www.rev.com/transcripts/white-house-maternal-healthcare-event",
+            "note": "標示 Taiwan 段落、烏克蘭脈絡與 right president 關鍵句。"
+          }
+        ]
+      }
+    }
+  }
+}
