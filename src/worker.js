@@ -1078,6 +1078,8 @@ function layout(title, body) {
     :root { color-scheme: light; --bg: #f7f7f4; --ink: #1f2328; --muted: #687076; --line: #d9ddd7; --panel: #ffffff; --accent: #0f766e; --accent-ink: #ffffff; }
     * { box-sizing: border-box; }
     body { margin: 0; background: var(--bg); color: var(--ink); font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.5; }
+    .top-nav { position: sticky; top: 0; z-index: 20; background: rgba(247, 247, 244, 0.94); border-bottom: 1px solid var(--line); backdrop-filter: blur(10px); }
+    .top-nav-inner { width: min(1120px, calc(100vw - 32px)); min-height: 56px; margin: 0 auto; display: flex; align-items: center; justify-content: flex-start; }
     main { width: min(1120px, calc(100vw - 32px)); margin: 0 auto; padding: 32px 0 56px; }
     h1, h2, p { margin-top: 0; }
     h1 { font-size: 30px; line-height: 1.2; margin-bottom: 0; }
@@ -1124,6 +1126,7 @@ function layout(title, body) {
     .empty { color: var(--muted); padding: 20px 0; }
     code { overflow-wrap: anywhere; }
     @media (max-width: 760px) {
+      .top-nav-inner { width: min(100vw - 20px, 1120px); }
       main { width: min(100vw - 20px, 1120px); padding-top: 18px; }
       .page-head, .panel-title { align-items: stretch; flex-direction: column; }
       .summary-grid, .two-col, .job-row { grid-template-columns: 1fr; }
@@ -1133,6 +1136,11 @@ function layout(title, body) {
   </style>
 </head>
 <body>
+  <nav class="top-nav" aria-label="Primary">
+    <div class="top-nav-inner">
+      <a class="button" href="/">Home</a>
+    </div>
+  </nav>
   <main>${body}</main>
   <script>
     document.addEventListener("click", async (event) => {
