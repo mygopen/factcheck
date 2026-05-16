@@ -13,12 +13,6 @@ export default {
       return renderJobsPage(env, url);
     }
 
-    if (request.method === "GET" && url.pathname.startsWith("/jobs/")) {
-      const id = decodeURIComponent(url.pathname.slice("/jobs/".length));
-      const job = await env.FACTCHECK_JOBS.get(jobKey(id), "json");
-      return job ? html(renderJobPage(normalizeJobForOutput(job), url)) : html(renderNotFoundPage(id), 404);
-    }
-
     if (request.method === "GET" && url.pathname.startsWith("/jobs/") && url.pathname.endsWith("/review")) {
       const id = decodeURIComponent(url.pathname.slice("/jobs/".length, -("/review".length)));
       const job = await env.FACTCHECK_JOBS.get(jobKey(id), "json");
@@ -28,6 +22,12 @@ export default {
     if (request.method === "POST" && url.pathname.startsWith("/jobs/") && url.pathname.endsWith("/review")) {
       const id = decodeURIComponent(url.pathname.slice("/jobs/".length, -("/review".length)));
       return handleReviewUpdate(request, env, id);
+    }
+
+    if (request.method === "GET" && url.pathname.startsWith("/jobs/")) {
+      const id = decodeURIComponent(url.pathname.slice("/jobs/".length));
+      const job = await env.FACTCHECK_JOBS.get(jobKey(id), "json");
+      return job ? html(renderJobPage(normalizeJobForOutput(job), url)) : html(renderNotFoundPage(id), 404);
     }
 
 
@@ -150,17 +150,15 @@ async function handleReviewUpdate(request, env, jobId) {
   const articleHtml = formData.get("article_html");
   const tags = formData.get("tags");
   const permalink = formData.get("permalink");
-  const searchDescription = formData.get("search_description");
 
   const currentJob = (await env.FACTCHECK_JOBS.get(jobKey(jobId), "json")) || { id: jobId };
 
   const updatedReport = {
     ...currentJob.report,
-    title: title || "",
-    article_html: articleHtml || "",
-    tags: tags ? tags.split(",").map(tag => tag.trim()).filter(Boolean) : [],
-    permalink: permalink || "",
-    search_description: searchDescription || "",
+    title: String(title || "").trim(),
+    article_html: String(articleHtml || ""),
+    tags: parseTags(tags),
+    permalink: String(permalink || "").trim(),
   };
 
   await updateJob(env, jobId, {
@@ -170,7 +168,7 @@ async function handleReviewUpdate(request, env, jobId) {
   });
 
   // Redirect back to the job detail page
-  return Response.redirect(publicUrl(env, `/jobs/${encodeURIComponent(jobId)}`), 302);
+  return Response.redirect(publicUrl(env, `/jobs/${encodeURIComponent(jobId)}`), 303);
 }
 
 async function processQueuedJobs(env) {
@@ -852,6 +850,13 @@ function extractUrls(text) {
   return matches.map((url) => url.replace(/[),.。]+$/g, ""));
 }
 
+function parseTags(value) {
+  return String(value || "")
+    .split(",")
+    .map((tag) => tag.trim())
+    .filter(Boolean);
+}
+
 function renderJobsListPage(jobs, url) {
   const rows = jobs.length
     ? jobs.map((job) => {
@@ -976,45 +981,45 @@ function renderReviewPage(job, url) {
   const report = job.report || {};
   const jobId = job.id;
 
-  return layout(`編輯查核任務 - ${report.title || "未命名"}`, `
+  return layout(`CMS Manual Review - ${report.title || "Untitled"}`, `
     <header class="page-head">
       <div>
-        <p class="eyebrow">Job ${escapeHtml(jobId)}</p>
-        <h1>編輯查核任務</h1>
+        <p class="eyebrow">CMS Manual Review · Job ${escapeHtml(jobId)}</p>
+        <h1>Review and edit article</h1>
       </div>
-      <a class="button" href="/jobs/${encodeURIComponent(jobId)}">返回任務</a>
+      <a class="button" href="/jobs/${encodeURIComponent(jobId)}">Back to article</a>
     </header>
 
     <section class="panel">
-      <form method="POST" action="/jobs/${encodeURIComponent(jobId)}/review">
+      <div class="panel-title">
+        <h2>CMS fields</h2>
+        <span class="muted">Update the article draft before publishing.</span>
+      </div>
+      <form class="cms-form" method="POST" action="/jobs/${encodeURIComponent(jobId)}/review">
         <div class="form-group">
-          <label for="title">標題</label>
+          <label for="title">Title</label>
           <input type="text" id="title" name="title" value="${escapeAttr(report.title || "")}" required />
         </div>
 
         <div class="form-group">
-          <label for="permalink">永久連結</label>
+          <label for="permalink">Permalink (Slug)</label>
           <input type="text" id="permalink" name="permalink" value="${escapeAttr(report.permalink || "")}" />
         </div>
 
         <div class="form-group">
-          <label for="tags">標籤 (逗號分隔)</label>
+          <label for="tags">Tags</label>
           <input type="text" id="tags" name="tags" value="${escapeAttr((report.tags || []).join(", "))}" />
+          <p class="field-hint">Separate tags with commas.</p>
         </div>
 
         <div class="form-group">
-          <label for="search_description">搜尋說明</label>
-          <textarea id="search_description" name="search_description" rows="3">${escapeHtml(report.search_description || "")}</textarea>
-        </div>
-
-        <div class="form-group">
-          <label for="article_html">文章 HTML</label>
-          <textarea id="article_html" name="article_html" rows="20" spellcheck="false">${escapeHtml(report.article_html || "")}</textarea>
+          <label for="article_html">HTML content</label>
+          <textarea id="article_html" name="article_html" rows="28" spellcheck="false">${escapeHtml(report.article_html || "")}</textarea>
         </div>
 
         <div class="form-actions">
-          <button type="submit" class="button primary">儲存修改</button>
-          <a href="/jobs/${encodeURIComponent(jobId)}" class="button">取消</a>
+          <button type="submit" class="button primary">Save review</button>
+          <a href="/jobs/${encodeURIComponent(jobId)}" class="button">Cancel</a>
         </div>
       </form>
     </section>
@@ -1090,6 +1095,7 @@ function layout(title, body) {
     .panel, .summary-card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 18px; margin-bottom: 16px; }
     .panel-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
     .panel-title h2 { margin: 0; }
+    .muted, .field-hint { color: var(--muted); }
     .button { appearance: none; border: 1px solid var(--line); background: #fff; color: var(--ink); border-radius: 6px; padding: 9px 12px; font: inherit; text-decoration: none; cursor: pointer; white-space: nowrap; }
     .button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
     .job-list { display: grid; gap: 8px; }
@@ -1119,6 +1125,7 @@ function layout(title, body) {
     .form-group label { display: block; font-weight: bold; margin-bottom: 6px; }
     .form-group input[type="text"], .form-group textarea { width: 100%; padding: 9px 12px; border: 1px solid var(--line); border-radius: 6px; font: inherit; background: #fbfbfa; color: var(--ink); }
     .form-group textarea { resize: vertical; }
+    .field-hint { margin: 6px 0 0; font-size: 13px; }
     .form-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
 
 
