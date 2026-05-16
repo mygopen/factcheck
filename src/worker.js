@@ -24,10 +24,15 @@ export default {
       return handleReviewUpdate(request, env, id);
     }
 
+    if (request.method === "POST" && url.pathname.startsWith("/jobs/") && url.pathname.endsWith("/blogger-draft")) {
+      const id = decodeURIComponent(url.pathname.slice("/jobs/".length, -("/blogger-draft".length)));
+      return handleBloggerDraftUpsert(request, env, id);
+    }
+
     if (request.method === "GET" && url.pathname.startsWith("/jobs/")) {
       const id = decodeURIComponent(url.pathname.slice("/jobs/".length));
       const job = await env.FACTCHECK_JOBS.get(jobKey(id), "json");
-      return job ? html(renderJobPage(normalizeJobForOutput(job), url)) : html(renderNotFoundPage(id), 404);
+      return job ? html(renderJobPage(normalizeJobForOutput(job), url, env)) : html(renderNotFoundPage(id), 404);
     }
 
 
@@ -169,6 +174,152 @@ async function handleReviewUpdate(request, env, jobId) {
 
   // Redirect back to the job detail page
   return Response.redirect(publicUrl(env, `/jobs/${encodeURIComponent(jobId)}`), 303);
+}
+
+async function handleBloggerDraftUpsert(request, env, jobId) {
+  const currentJob = await env.FACTCHECK_JOBS.get(jobKey(jobId), "json");
+  if (!currentJob) return html(renderNotFoundPage(jobId), 404);
+
+  try {
+    const result = await upsertBloggerDraft(env, currentJob);
+    await updateJob(env, jobId, {
+      bloggerDraft: result,
+      bloggerDraftError: null
+    });
+  } catch (error) {
+    await updateJob(env, jobId, {
+      bloggerDraftError: {
+        message: error instanceof Error ? error.message : String(error),
+        updatedAt: new Date().toISOString()
+      }
+    });
+  }
+
+  return Response.redirect(publicUrl(env, `/jobs/${encodeURIComponent(jobId)}`), 303);
+}
+
+async function upsertBloggerDraft(env, job) {
+  const blogId = String(env.BLOGGER_BLOG_ID || "").trim();
+  if (!blogId) throw new Error("Missing BLOGGER_BLOG_ID.");
+
+  const payload = bloggerPostPayload(job);
+  const token = await getBloggerAccessToken(env);
+  const existingPostId = String(job.bloggerDraft?.id || "").trim();
+
+  if (existingPostId) {
+    const updated = await bloggerApiRequest(env, token, {
+      method: "PATCH",
+      path: `/blogs/${encodeURIComponent(blogId)}/posts/${encodeURIComponent(existingPostId)}`,
+      body: payload,
+      allowNotFound: true
+    });
+    if (updated) return bloggerDraftResult(updated, blogId, "updated");
+  }
+
+  const created = await bloggerApiRequest(env, token, {
+    method: "POST",
+    path: `/blogs/${encodeURIComponent(blogId)}/posts`,
+    query: { isDraft: "true" },
+    body: payload
+  });
+  return bloggerDraftResult(created, blogId, "created");
+}
+
+function bloggerPostPayload(job) {
+  const report = job.report || {};
+  const title = String(report.title || job.searchPlan?.claim || "查核草稿").trim();
+  const content = String(report.article_html || "").trim();
+  if (!title) throw new Error("Blogger draft requires a title.");
+  if (!content) throw new Error("Blogger draft requires HTML content.");
+
+  const labels = Array.isArray(report.tags)
+    ? report.tags.map((tag) => String(tag || "").trim()).filter(Boolean)
+    : [];
+
+  return {
+    kind: "blogger#post",
+    title,
+    content,
+    labels
+  };
+}
+
+async function getBloggerAccessToken(env) {
+  const staticToken = String(env.BLOGGER_ACCESS_TOKEN || "").trim();
+  if (staticToken) return staticToken;
+
+  const required = ["BLOGGER_CLIENT_ID", "BLOGGER_CLIENT_SECRET", "BLOGGER_REFRESH_TOKEN"];
+  const missing = required.filter((key) => !String(env[key] || "").trim());
+  if (missing.length) throw new Error(`Missing Blogger OAuth configuration: ${missing.join(", ")}.`);
+
+  const body = new URLSearchParams({
+    client_id: env.BLOGGER_CLIENT_ID,
+    client_secret: env.BLOGGER_CLIENT_SECRET,
+    refresh_token: env.BLOGGER_REFRESH_TOKEN,
+    grant_type: "refresh_token"
+  });
+
+  const response = await fetch(env.BLOGGER_OAUTH_TOKEN_URL || "https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body
+  });
+  const data = await safeJson(response);
+  if (!response.ok || !data?.access_token) {
+    throw new Error(`Blogger OAuth refresh failed (${response.status}): ${googleApiErrorMessage(data)}`);
+  }
+  return data.access_token;
+}
+
+async function bloggerApiRequest(env, token, { method, path, query = {}, body, allowNotFound = false }) {
+  const base = String(env.BLOGGER_API_BASE_URL || "https://www.googleapis.com/blogger/v3").replace(/\/+$/g, "");
+  const url = new URL(`${base}${path}`);
+  for (const [key, value] of Object.entries(query)) {
+    if (value !== undefined && value !== null && value !== "") url.searchParams.set(key, String(value));
+  }
+
+  const response = await fetch(url.toString(), {
+    method,
+    headers: {
+      authorization: `Bearer ${token}`,
+      "content-type": "application/json"
+    },
+    body: JSON.stringify(body)
+  });
+  const data = await safeJson(response);
+  if (allowNotFound && response.status === 404) return null;
+  if (!response.ok) {
+    throw new Error(`Blogger API request failed (${response.status}): ${googleApiErrorMessage(data)}`);
+  }
+  return data;
+}
+
+function bloggerDraftResult(post, blogId, action) {
+  return {
+    id: String(post.id || ""),
+    blogId,
+    action,
+    status: post.status || "DRAFT",
+    title: post.title || "",
+    url: post.url || "",
+    selfLink: post.selfLink || "",
+    labels: Array.isArray(post.labels) ? post.labels : [],
+    updatedAt: new Date().toISOString()
+  };
+}
+
+async function safeJson(response) {
+  const text = await response.text();
+  if (!text) return {};
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { raw: text.slice(0, 500) };
+  }
+}
+
+function googleApiErrorMessage(data) {
+  return data?.error?.message || data?.error_description || data?.raw || "unknown_error";
 }
 
 async function processQueuedJobs(env) {
@@ -871,7 +1022,7 @@ function renderJobsListPage(jobs, url) {
   `);
 }
 
-function renderJobPage(job, url) {
+function renderJobPage(job, url, env = {}) {
   const report = job.report || {};
   const articleHtml = report.article_html || "";
   const previewDocument = renderArticlePreviewDocument(report.title || "", articleHtml);
@@ -920,6 +1071,8 @@ function renderJobPage(job, url) {
         `搜尋說明：${report.search_description || ""}`
       ].join("\n"))}</textarea>
     </section>
+
+    ${renderBloggerDraftPanel(job, env)}
 
     <section class="panel">
       <h2>證據來源</h2>
@@ -997,6 +1150,49 @@ function renderNotFoundPage(id) {
   `);
 }
 
+function renderBloggerDraftPanel(job, env = {}) {
+  const draft = job.bloggerDraft || null;
+  const error = job.bloggerDraftError || null;
+  const configured = isBloggerConfigured(env);
+  const buttonLabel = draft?.id ? "更新 Blogger 草稿" : "建立 Blogger 草稿";
+  const action = `/jobs/${encodeURIComponent(job.id)}/blogger-draft`;
+  const configHint = configured
+    ? ""
+    : `<p class="field-hint">尚未設定 Blogger API secrets，設定後即可建立草稿。</p>`;
+  const draftRows = draft?.id
+    ? `<dl>
+        <dt>狀態</dt><dd>${escapeHtml(draft.status || "DRAFT")}</dd>
+        <dt>Post ID</dt><dd>${escapeHtml(draft.id)}</dd>
+        <dt>更新時間</dt><dd>${escapeHtml(draft.updatedAt || "")}</dd>
+        ${draft.url ? `<dt>草稿連結</dt><dd><a href="${escapeAttr(draft.url)}" target="_blank" rel="noreferrer">${escapeHtml(draft.url)}</a></dd>` : ""}
+        ${draft.selfLink ? `<dt>API</dt><dd><a href="${escapeAttr(draft.selfLink)}" target="_blank" rel="noreferrer">${escapeHtml(draft.selfLink)}</a></dd>` : ""}
+      </dl>`
+    : `<p class="empty">尚未建立 Blogger 草稿。</p>`;
+  const errorHtml = error?.message
+    ? `<p class="error-message">Blogger 草稿建立失敗：${escapeHtml(error.message)}${error.updatedAt ? `（${escapeHtml(error.updatedAt)}）` : ""}</p>`
+    : "";
+
+  return `<section class="panel">
+    <div class="panel-title">
+      <h2>Blogger 草稿</h2>
+      <form class="inline-form" method="POST" action="${escapeAttr(action)}">
+        <button class="button primary" type="submit"${configured ? "" : " disabled"}>${escapeHtml(buttonLabel)}</button>
+      </form>
+    </div>
+    ${draftRows}
+    ${configHint}
+    ${errorHtml}
+  </section>`;
+}
+
+function isBloggerConfigured(env) {
+  const hasBlogId = Boolean(String(env.BLOGGER_BLOG_ID || "").trim());
+  const hasStaticToken = Boolean(String(env.BLOGGER_ACCESS_TOKEN || "").trim());
+  const hasRefreshFlow = ["BLOGGER_CLIENT_ID", "BLOGGER_CLIENT_SECRET", "BLOGGER_REFRESH_TOKEN"]
+    .every((key) => Boolean(String(env[key] || "").trim()));
+  return hasBlogId && (hasStaticToken || hasRefreshFlow);
+}
+
 function summaryCard(label, value) {
   return `<div class="summary-card"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`;
 }
@@ -1059,6 +1255,9 @@ function layout(title, body) {
     .muted, .field-hint { color: var(--muted); }
     .button { appearance: none; border: 1px solid var(--line); background: #fff; color: var(--ink); border-radius: 6px; padding: 9px 12px; font: inherit; text-decoration: none; cursor: pointer; white-space: nowrap; }
     .button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+    .button:disabled { cursor: not-allowed; opacity: 0.56; }
+    .inline-form { margin: 0; }
+    .error-message { margin: 12px 0 0; color: #9f1d1d; }
     .job-list { display: grid; gap: 8px; }
     .job-row { display: grid; grid-template-columns: 150px 1fr; gap: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 6px; text-decoration: none; color: inherit; background: #fbfbfa; }
     .job-row small { display: block; color: var(--muted); margin-top: 3px; }

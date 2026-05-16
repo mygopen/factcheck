@@ -1,6 +1,6 @@
 # Slack AI 查核文章產生系統
 
-這個專案是第一版 MVP：用 Cloudflare Worker 接 Slack thread 指令，抓取貼文線索，呼叫 Gemini / Gemma 與 Google Search grounding 產生查核草稿，並輸出適合 Google Blogger 的 HTML、標題、標籤、永久連結與 showcha 素材製作清單。
+這個專案是第一版 MVP：用 Cloudflare Worker 接 Slack thread 指令，抓取貼文線索，呼叫 Gemini / Gemma 與 Google Search grounding 產生查核草稿，並輸出適合 Google Blogger 的 HTML、標題、標籤與永久連結。
 
 ## 目前流程
 
@@ -9,8 +9,9 @@
 3. Worker 先把 job 存進 Cloudflare KV 並回覆 Slack，避免 Slack 事件逾時。
 4. Cloudflare Cron 每分鐘處理 queued job，抓取該 thread 原文、留言、連結與 Slack 附件 metadata。
 5. Worker 請模型萃取主張與搜尋關鍵字，並用 Gemini Google Search grounding 找證據來源。
-6. Worker 再請模型產出 Blogger HTML 草稿與素材清單。
-7. 結果可從 Slack 回覆中的 `/jobs/:id` 網站頁面取得，也可用 `/api/jobs/:id` 讀 JSON。
+6. Worker 再請模型產出 Blogger HTML 草稿。
+7. 人工審稿後，可從 `/jobs/:id` 頁面直接建立或更新 Blogger 草稿。
+8. 結果可從 Slack 回覆中的 `/jobs/:id` 網站頁面取得，也可用 `/api/jobs/:id` 讀 JSON。
 
 後台列表頁：
 
@@ -47,6 +48,27 @@ gemini-3.1-flash-lite
 ```
 
 搜尋證據使用 Gemini Google Search grounding，不需要另外申請 Google Programmable Search 或 Custom Search JSON API。
+
+### 3. Blogger API
+
+建立或更新 Blogger 草稿需要一組可寫入目標 Blog 的 OAuth refresh token，scope 需包含：
+
+```text
+https://www.googleapis.com/auth/blogger
+```
+
+設定 secrets：
+
+```bash
+npx wrangler secret put BLOGGER_BLOG_ID
+npx wrangler secret put BLOGGER_CLIENT_ID
+npx wrangler secret put BLOGGER_CLIENT_SECRET
+npx wrangler secret put BLOGGER_REFRESH_TOKEN
+```
+
+若只想短期測試，也可以設定 `BLOGGER_ACCESS_TOKEN`，但 access token 會過期，正式環境建議使用 refresh token。
+
+注意：Blogger API 建立文章時會寫入標題、HTML 內容與 labels；目前 Blogger API 的 `posts.insert` 不提供自訂 permalink slug 欄位，`report.permalink` 仍保留在 CMS metadata 供發布前人工確認。
 
 ## 本機開發
 
@@ -93,6 +115,10 @@ npx wrangler kv namespace create FACTCHECK_JOBS --preview
 npx wrangler secret put SLACK_SIGNING_SECRET
 npx wrangler secret put SLACK_BOT_TOKEN
 npx wrangler secret put GOOGLE_AI_API_KEY
+npx wrangler secret put BLOGGER_BLOG_ID
+npx wrangler secret put BLOGGER_CLIENT_ID
+npx wrangler secret put BLOGGER_CLIENT_SECRET
+npx wrangler secret put BLOGGER_REFRESH_TOKEN
 ```
 
 部署：
@@ -110,6 +136,8 @@ npm run deploy
 - `report.tags`
 - `report.permalink`
 - `report.search_description`
+- `bloggerDraft`
+- `bloggerDraftError`
 
 接 Slack 前可以先用本機端點測草稿品質：
 
@@ -136,4 +164,4 @@ curl -X POST http://localhost:8787/api/draft \
 
 1. 加上 Slack 檔案下載與圖片送進 Gemma 3 vision 分析。
 2. 加上 R2 儲存產出的圖片與證據截圖。
-3. 加上 Blogger API 草稿建立，從「貼上 HTML」升級成「直接建立 Blogger 草稿」。
+3. 加上 Blogger API 草稿發布前檢查與錯誤提示細節。
