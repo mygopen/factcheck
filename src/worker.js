@@ -381,20 +381,19 @@ async function generateReport(env, claimPackage, evidence) {
     "1. 沒有證據支持的句子要保守表述，不能編造來源。",
     "2. HTML 必須符合使用者指定結構。",
     "3. 資料來源只列 evidence.items、evidence.results.items 或 Slack 線索 urls 中真的存在的連結；必須直接使用 evidence 中的 link 欄位，不可自行新增任何 URL。",
-    "4. showcha_assets 要包含 cover.showcha.com 首圖製作文案、grid.showcha.com 截圖組合清單。",
-    "5. 如果 evidence.mode 是 manual_required，請明確把草稿標記為待人工查證，不要寫成已完成定稿。",
-    "6. title 必須且只能用以下三種分類之一開頭：【錯誤】【誤導】【易誤解】；不得使用【闢謠】、【查核】、【謠言查證】或其他分類。",
-    "7. 分類判斷：核心主張與事實不符用【錯誤】；挪用素材、斷章取義、時間地點脈絡錯置但含部分真實元素用【誤導】；文字本身未必全錯但容易造成錯誤理解、需補充脈絡用【易誤解】。",
-    "8. 「你可以先知道」區塊必須放在 <div class=\"quote_style\"><h3 style=\"text-align: center;\">你可以先知道：</h3>...</div> 內，內容必須是（1）（2）（3）條列，至少 2 點、最多 4 點，項目之間使用 <br /><br />，不得寫成單段摘要。",
-    "9. 「你可以先知道」每點應各自完整說明：傳言背景或來源、查核到的關鍵證據、傳言流傳脈絡或結論；語氣需像 MyGoPen，不要使用條列符號以外的格式。",
-    "10. 查證解釋區塊必須寫成 MyGoPen 式分段長文：放在 <blockquote class=\"yestrue\"> 內，至少包含 2 個 <h3 style=\"text-align: left;\">小標</h3><br />，最後一個小標必須是「結論」。",
-    "11. 查證解釋區塊的小節應依題材自然命名，例如「網傳影片的原始來源為何？」、「傳言流傳脈絡為何？」、「實際狀況為何？」、「結論」。",
-    "12. 查證解釋區塊內的段落必須使用 <br /><br /> 分隔；可用（一）（二）（三）呈現查證步驟；重要查核句可用 <b><span style=\"color: red;\">重點文字</span></b> 標示。",
-    "13. 不要只寫摘要式結論；查證解釋至少要清楚交代：原始來源或可追溯線索、流傳脈絡或主張形成方式、證據如何支持/反駁、結論。",
-    "14. 不得插入任何 <img> 標籤，所有原本放置圖片、首圖或影片的位置，請統一改為使用 <br />[查核圖片]<br /> 取代。",
+    "4. 如果 evidence.mode 是 manual_required，請明確把草稿標記為待人工查證，不要寫成已完成定稿。",
+    "5. title 必須且只能用以下三種分類之一開頭：【錯誤】【誤導】【易誤解】；不得使用【闢謠】、【查核】、【謠言查證】或其他分類。",
+    "6. 分類判斷：核心主張與事實不符用【錯誤】；挪用素材、斷章取義、時間地點脈絡錯置但含部分真實元素用【誤導】；文字本身未必全錯但容易造成錯誤理解、需補充脈絡用【易誤解】。",
+    "7. 「你可以先知道」區塊必須放在 <div class=\"quote_style\"><h3 style=\"text-align: center;\">你可以先知道：</h3>...</div> 內，內容必須是（1）（2）（3）條列，至少 2 點、最多 4 點，項目之間使用 <br /><br />，不得寫成單段摘要。",
+    "8. 「你可以先知道」每點應各自完整說明：傳言背景或來源、查核到的關鍵證據、傳言流傳脈絡或結論；語氣需像 MyGoPen，不要使用條列符號以外的格式。",
+    "9. 查證解釋區塊必須寫成 MyGoPen 式分段長文：放在 <blockquote class=\"yestrue\"> 內，至少包含 2 個 <h3 style=\"text-align: left;\">小標</h3><br />，最後一個小標必須是「結論」。",
+    "10. 查證解釋區塊的小節應依題材自然命名，例如「網傳影片的原始來源為何？」、「傳言流傳脈絡為何？」、「實際狀況為何？」、「結論」。",
+    "11. 查證解釋區塊內的段落必須使用 <br /><br /> 分隔；可用（一）（二）（三）呈現查證步驟；重要查核句可用 <b><span style=\"color: red;\">重點文字</span></b> 標示。",
+    "12. 不要只寫摘要式結論；查證解釋至少要清楚交代：原始來源或可追溯線索、流傳脈絡或主張形成方式、證據如何支持/反駁、結論。",
+    "13. 不得插入任何 <img> 標籤，所有原本放置圖片或影片的位置，請統一改為使用 <br />[查核圖片]<br /> 取代。",
     "只輸出 JSON，不要 markdown。",
     "JSON schema:",
-    '{"title":"","article_html":"","tags":[""],"permalink":"","search_description":"","showcha_assets":{"cover":{"tool_url":"","headline":"","verdict":"","source_image_notes":""},"grid":{"tool_url":"","screenshots":[{"label":"","source_url":"","note":""}]}}}',
+    '{"title":"","article_html":"","tags":[""],"permalink":"","search_description":""}',
     "",
     "Slack 線索：",
     JSON.stringify(claimPackage, null, 2),
@@ -406,11 +405,6 @@ async function generateReport(env, claimPackage, evidence) {
     bloggerTemplate()
   ].join("\n");
   const report = await generateGemmaJson(env, prompt);
-  report.showcha_assets ||= {};
-  report.showcha_assets.cover ||= {};
-  report.showcha_assets.grid ||= {};
-  report.showcha_assets.cover.tool_url = env.COVER_TOOL_URL || "https://cover.showcha.com/";
-  report.showcha_assets.grid.tool_url = env.GRID_TOOL_URL || "https://grid.showcha.com/";
   normalizeReportTitle(report);
   normalizeQuickTake(report);
   normalizeFactcheckExplanation(report);
@@ -551,18 +545,6 @@ function sanitizeReportLinks(report, claimPackage, evidence) {
     });
   }
 
-  const screenshots = report.showcha_assets?.grid?.screenshots || [];
-  for (const screenshot of screenshots) {
-    if (screenshot.source_url && !linkIndex.allowed.has(screenshot.source_url)) {
-      const replacement = findBestEvidenceLink(`${screenshot.label || ""} ${screenshot.note || ""}`, linkIndex.candidates);
-      if (replacement) {
-        screenshot.source_url = replacement.link;
-      } else {
-        screenshot.note = [screenshot.note, `原建議連結「${screenshot.source_url}」未出現在 grounding evidence，需人工確認。`].filter(Boolean).join(" ");
-        screenshot.source_url = "";
-      }
-    }
-  }
 }
 
 function normalizeReportTitle(report) {
@@ -891,8 +873,6 @@ function renderJobsListPage(jobs, url) {
 
 function renderJobPage(job, url) {
   const report = job.report || {};
-  const cover = report.showcha_assets?.cover || {};
-  const screenshots = report.showcha_assets?.grid?.screenshots || [];
   const articleHtml = report.article_html || "";
   const previewDocument = renderArticlePreviewDocument(report.title || "", articleHtml);
   const evidenceLinks = uniqueEvidenceItems(job.evidence?.items || []).slice(0, 12);
@@ -939,25 +919,6 @@ function renderJobPage(job, url) {
         `永久連結：${report.permalink || ""}`,
         `搜尋說明：${report.search_description || ""}`
       ].join("\n"))}</textarea>
-    </section>
-
-    <section class="two-col">
-      <div class="panel">
-        <h2>首圖製作</h2>
-        <dl>
-          <dt>工具</dt><dd><a href="${escapeAttr(cover.tool_url || "https://cover.showcha.com/")}" target="_blank" rel="noreferrer">cover.showcha.com</a></dd>
-          <dt>標題</dt><dd>${escapeHtml(cover.headline || "")}</dd>
-          <dt>判定</dt><dd>${escapeHtml(cover.verdict || "")}</dd>
-          <dt>素材備註</dt><dd>${escapeHtml(cover.source_image_notes || "")}</dd>
-        </dl>
-      </div>
-      <div class="panel">
-        <h2>截圖組合</h2>
-        <p><a href="${escapeAttr(report.showcha_assets?.grid?.tool_url || "https://grid.showcha.com/")}" target="_blank" rel="noreferrer">grid.showcha.com</a></p>
-        <ul class="plain-list">
-          ${screenshots.map((item) => `<li><strong>${escapeHtml(item.label || "截圖")}</strong><br />${escapeHtml(item.note || "")}${item.source_url ? `<br /><a href="${escapeAttr(item.source_url)}" target="_blank" rel="noreferrer">${escapeHtml(item.source_url)}</a>` : ""}</li>`).join("") || "<li>待補截圖清單</li>"}
-        </ul>
-      </div>
     </section>
 
     <section class="panel">
@@ -1114,7 +1075,6 @@ function layout(title, body) {
     .article-preview { width: 100%; min-height: 720px; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
     textarea { width: 100%; min-height: 340px; resize: vertical; border: 1px solid var(--line); border-radius: 6px; padding: 12px; font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--ink); background: #fbfbfa; }
     #metadata { min-height: 150px; }
-    .two-col { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
     dl { display: grid; grid-template-columns: 80px 1fr; gap: 8px 12px; margin: 0; }
     dt { color: var(--muted); }
     dd { margin: 0; overflow-wrap: anywhere; }
@@ -1136,7 +1096,7 @@ function layout(title, body) {
       .top-nav-inner { width: min(100vw - 20px, 1120px); }
       main { width: min(100vw - 20px, 1120px); padding-top: 18px; }
       .page-head, .panel-title { align-items: stretch; flex-direction: column; }
-      .summary-grid, .two-col, .job-row { grid-template-columns: 1fr; }
+      .summary-grid, .job-row { grid-template-columns: 1fr; }
       h1 { font-size: 24px; }
       .article-preview { min-height: 560px; }
     }

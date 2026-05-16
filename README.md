@@ -74,7 +74,6 @@ npm run dev
 
 - `article.html`：可貼到 Blogger 的 HTML
 - `metadata.md`：標題、標籤、永久連結、搜尋說明
-- `showcha-assets.md`：cover.showcha.com 與 grid.showcha.com 製作清單
 - `report.json`：完整機器可讀輸出
 
 ## Cloudflare 部署
@@ -111,8 +110,6 @@ npm run deploy
 - `report.tags`
 - `report.permalink`
 - `report.search_description`
-- `report.showcha_assets.cover`
-- `report.showcha_assets.grid`
 
 接 Slack 前可以先用本機端點測草稿品質：
 
@@ -127,7 +124,7 @@ curl -X POST http://localhost:8787/api/draft \
 ```html
 <div class="quote_style"><h3 style="text-align: center;">你可以先知道：</h3>說明破解資訊。</div><br />
 <div class="intro_words">網傳「謠言內容」的影片訊息，前言描述。</div>
-「首圖」
+<br />[查核圖片]<br />
 <!--more-->
 <h2>大標的謠言</h2>
 <br />原始謠傳版本：<br />
@@ -135,18 +132,8 @@ curl -X POST http://localhost:8787/api/draft \
 ...
 ```
 
-## showcha 工具整合方式
-
-目前 `cover.showcha.com` 與 `grid.showcha.com` 先以「製作清單」整合：
-
-- `showcha_assets.cover` 會給你首圖標題、判定字樣、素材說明。
-- `showcha_assets.grid.screenshots` 會列出建議截圖來源與用途。
-
-也就是第一版會讓你一鍵取得應該放進 showcha 的內容，但實際下載圖片仍由你在 showcha 網頁完成。等確認這兩個工具有穩定公開 API 或可接受的自動化方式，再把這段改成真正自動產圖。
-
 ## 下一步
 
 1. 加上 Slack 檔案下載與圖片送進 Gemma 3 vision 分析。
-2. 加上人工審稿頁，讓你修改標題、HTML、標籤、永久連結。
-3. 加上 R2 儲存產出的圖片與證據截圖。
-4. 加上 Blogger API 草稿建立，從「貼上 HTML」升級成「直接建立 Blogger 草稿」。
+2. 加上 R2 儲存產出的圖片與證據截圖。
+3. 加上 Blogger API 草稿建立，從「貼上 HTML」升級成「直接建立 Blogger 草稿」。

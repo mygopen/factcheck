@@ -38,7 +38,6 @@ const result = {
 await writeFile(path.join(outputDir, "report.json"), `${JSON.stringify(result, null, 2)}\n`);
 await writeFile(path.join(outputDir, "article.html"), `${report.article_html || ""}\n`);
 await writeFile(path.join(outputDir, "metadata.md"), renderMetadata(report));
-await writeFile(path.join(outputDir, "showcha-assets.md"), renderShowchaAssets(report.showcha_assets || {}));
 
 console.log(`Generated draft: ${report.title || "(untitled)"}`);
 console.log(`Output directory: ${outputDir}`);
@@ -104,11 +103,10 @@ async function generateReport(input, evidence) {
     "1. 沒有證據支持的句子要保守表述，不能編造來源。",
     "2. HTML 必須符合使用者指定結構。",
     "3. 資料來源只列 evidence.items、evidence.results.items 或謠言線索 urls 中真的存在的連結；如果沒有可用連結，資料來源段落只能寫「待人工補充資料來源」，不可自行新增任何 URL。",
-    "4. showcha_assets 要包含 cover.showcha.com 首圖製作文案、grid.showcha.com 截圖組合清單。",
-    "5. 如果 evidence.mode 是 manual_required，請明確把草稿標記為待人工查證，不要寫成已完成定稿。",
+    "4. 如果 evidence.mode 是 manual_required，請明確把草稿標記為待人工查證，不要寫成已完成定稿。",
     "只輸出 JSON，不要 markdown。",
     "JSON schema:",
-    '{"title":"","article_html":"","tags":[""],"permalink":"","search_description":"","showcha_assets":{"cover":{"tool_url":"https://cover.showcha.com/","headline":"","verdict":"","source_image_notes":""},"grid":{"tool_url":"https://grid.showcha.com/","screenshots":[{"label":"","source_url":"","note":""}]}}}',
+    '{"title":"","article_html":"","tags":[""],"permalink":"","search_description":""}',
     "",
     "謠言線索：",
     JSON.stringify(input, null, 2),
@@ -120,11 +118,6 @@ async function generateReport(input, evidence) {
     bloggerTemplate()
   ].join("\n");
   const report = await generateGemmaJson(prompt);
-  report.showcha_assets ||= {};
-  report.showcha_assets.cover ||= {};
-  report.showcha_assets.grid ||= {};
-  report.showcha_assets.cover.tool_url ||= "https://cover.showcha.com/";
-  report.showcha_assets.grid.tool_url ||= "https://grid.showcha.com/";
   sanitizeReportLinks(report, allowedEvidenceLinks(input, evidence));
   return report;
 }
@@ -234,13 +227,6 @@ function sanitizeReportLinks(report, allowedLinks) {
     });
   }
 
-  const screenshots = report.showcha_assets?.grid?.screenshots || [];
-  for (const screenshot of screenshots) {
-    if (screenshot.source_url && !allowedLinks.has(screenshot.source_url)) {
-      screenshot.note = [screenshot.note, `原建議連結「${screenshot.source_url}」未出現在 grounding evidence，需人工確認。`].filter(Boolean).join(" ");
-      screenshot.source_url = "";
-    }
-  }
 }
 
 function parseJsonObject(text) {
@@ -274,37 +260,10 @@ function renderMetadata(report) {
   ].join("\n");
 }
 
-function renderShowchaAssets(showchaAssets) {
-  const cover = showchaAssets.cover || {};
-  const grid = showchaAssets.grid || {};
-  const screenshots = grid.screenshots || [];
-
-  return [
-    "# showcha 素材清單",
-    "",
-    "## 首圖",
-    `工具：${cover.tool_url || "https://cover.showcha.com/"}`,
-    `標題：${cover.headline || ""}`,
-    `判定：${cover.verdict || ""}`,
-    `素材備註：${cover.source_image_notes || ""}`,
-    "",
-    "## 截圖組合",
-    `工具：${grid.tool_url || "https://grid.showcha.com/"}`,
-    "",
-    ...screenshots.flatMap((item, index) => [
-      `### 截圖 ${index + 1}`,
-      `標籤：${item.label || ""}`,
-      `來源：${item.source_url || ""}`,
-      `備註：${item.note || ""}`,
-      ""
-    ])
-  ].join("\n");
-}
-
 function bloggerTemplate() {
   return `<div class="quote_style"><h3 style="text-align: center;">你可以先知道：</h3>說明破解資訊。</div><br />
 <div class="intro_words">網傳「謠言內容」的影片訊息，前言描述。</div>
-「首圖」
+<br />[查核圖片]<br />
 <!--more-->
 <h2>大標的謠言</h2>
 <br />原始謠傳版本：<br />
