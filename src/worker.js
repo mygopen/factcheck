@@ -903,11 +903,53 @@ function parseJsonObject(text) {
   try {
     return JSON.parse(trimmed);
   } catch {
-    const start = trimmed.indexOf("{");
-    const end = trimmed.lastIndexOf("}");
-    if (start === -1 || end === -1 || end <= start) throw new Error(`Model did not return JSON: ${text.slice(0, 400)}`);
-    return JSON.parse(trimmed.slice(start, end + 1));
+    const jsonText = extractFirstJsonObject(trimmed);
+    if (!jsonText) throw new Error(`Model did not return JSON: ${text.slice(0, 400)}`);
+    return JSON.parse(jsonText);
   }
+}
+
+function extractFirstJsonObject(value) {
+  const text = String(value || "");
+  let start = -1;
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let index = 0; index < text.length; index += 1) {
+    const char = text[index];
+
+    if (start === -1) {
+      if (char === "{") {
+        start = index;
+        depth = 1;
+      }
+      continue;
+    }
+
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+
+    if (char === "\\") {
+      escaped = inString;
+      continue;
+    }
+
+    if (char === "\"") {
+      inString = !inString;
+      continue;
+    }
+
+    if (inString) continue;
+
+    if (char === "{") depth += 1;
+    if (char === "}") depth -= 1;
+    if (depth === 0) return text.slice(start, index + 1);
+  }
+
+  return "";
 }
 
 async function slackApi(env, method, payload) {
